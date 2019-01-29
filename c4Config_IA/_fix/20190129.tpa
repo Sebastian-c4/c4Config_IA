@@ -1,0 +1,81 @@
+DEFINE_ACTION_FUNCTION 20190129 BEGIN
+
+	OUTER_SPRINT fix_root ~%mod_root%/_fix/20190129~
+	
+	//召唤observers提到baldur顶部，防止被屏蔽
+	COPY - ~%fix_root%/observers.ids~ override
+		READ_2DA_ENTRIES_NOW rows 2
+		FOR (i=0;i<rows;++i) BEGIN
+			READ_2DA_ENTRY_FORMER rows i 0 value1
+			READ_2DA_ENTRY_FORMER rows i 1 value2
+			INNER_PATCH_SAVE value2 ~%value2%~ BEGIN
+				REPLACE_TEXTUALLY ~NONE~ ~~
+			END
+			SPRINT $obv(~%value1%~) ~%value2%~
+			INNER_PATCH_SAVE value2 ~%value2%~ BEGIN
+				REPLACE_TEXTUALLY ~True()~ ~~
+			END
+			SPRINT $obv2(~%value1%~) ~%value2%~
+		END
+		
+	ACTION_PHP_EACH obv AS name => conditions BEGIN
+		LAF remove_observer INT_VAR remove_script=0 STR_VAR name conditions END
+	END
+		
+	ACTION_PHP_EACH obv2 AS name => conditions BEGIN
+		LAF create_observer INT_VAR create_script=0 STR_VAR name conditions END
+	END
+	
+	//自然等职业休息判断提到baldur顶部
+	ACTION_BASH_FOR ~%fix_root%/rest_check~ ~.*\.baf~ BEGIN
+		COPY_EXISTING blank.bcs ~override/blank2.bcs~
+		OUTER_FOR (PN=1;PN<7;++PN) BEGIN
+			COPY_EXISTING_REGEXP ~baldur.*\.bcs~ override
+				R_B_B EVAL ~%BASH_FOR_FILESPEC%~ ~override/blank.bcs~
+			EXTEND_BOTTOM blank2.bcs ~%BASH_FOR_FILESPEC%~ EVAL
+		END
+		EXTEND_TOP_REGEXP ~baldur.*\.bcs~ ~override/blank2.bcs~
+	END
+	DELETE ~override/blank2.bcs~
+	
+	//1级npc属性错误叠加
+	ACTION_FOR_EACH npc IN haer keldor korgan nalia BEGIN
+		COPY_EXISTING_REGEXP GLOB ~%npc%[0-9]+\.cre~ override
+			GET_OFFSET_ARRAY effect CRE_V10_EFFECTS
+			PHP_EACH effect AS int => offset BEGIN
+				SET offset -= 8
+				READ_LONG offset+0x10 opcode
+				PATCH_IF opcode != 233 BEGIN
+					WRITE_LONG offset+0x10 999
+				END
+			END
+			LPF DELETE_EFFECT INT_VAR match_opcode=999 END
+			BUT_ONLY
+	END
+	
+	//猫形态移除猛扑
+	COPY_EXISTING_REGEXP GLOB ~c4QDT[1-4]B.itm~ override
+		LPF DELETE_EFFECT INT_VAR check_globals=0 match_opcode=235 END
+		
+	COPY_EXISTING_REGEXP GLOB ~c4QDT[1-4]+.spl~ override
+		READ_LONG 0x50 desc
+		INNER_ACTION BEGIN
+			ALTER_TLK_RANGE desc desc BEGIN
+				REPLACE_TEXTUALLY ~%LNL%-猛扑：猫形态下可以中距离攻击敌人，命中后跳跃至敌人身后。~ ~~
+			END
+		END
+		
+	//变形移除撕碎
+	COPY_EXISTING_REGEXP GLOB ~c4QDT[1-4][ABC]\.spl~ override ~c4QDT00.spl~ override
+		LPF ALTER_EFFECT INT_VAR match_opcode=321 parameter2=0 END
+		LPF CLONE_EFFECT INT_VAR opcode=146 timing=1 duration=0 STR_VAR match_resource=SPPOLYMP resource=c4QDIBA4 END
+	
+	//塞丽乐芙不出现脚本放在最开始
+	COPY_EXISTING baldur.bcs override
+		R_B_B ~%SCRIPTS%/no_saerileth.baf~ ~override/blank.bcs~
+	EXTEND_TOP_REGEXP ~baldur.*\.bcs~ ~%SCRIPTS%/no_saerileth.baf~
+	
+	//mrk
+	COPY_EXISTING ring01.itm ~%marker_loc%/20190129.mrk~
+
+END

@@ -1,0 +1,17 @@
+DEFINE_ACTION_FUNCTION initial BEGIN
+
+	//字体
+	COPY ~%FONTS%/SIMHEI.ttf~ override
+	COPY ~%LUAS%/M_HEITI.LUA~ override
+
+	COPY ~%LUAS%/Baldur.LUA~ ~%USER_DIRECTORY_c4IA%/Baldur.LUA~
+		REPLACE_TEXTUALLY ~SetPrivateProfileString('Fonts','zh_CN','.+')~
+											~SetPrivateProfileString('Fonts','zh_CN','SIMHEI')~
+											
+	//拉萨德设为混元
+	EXTEND_TOP rasaad.bcs ~%SCRIPTS%/rasaad_kit.baf~
+	
+	//强制塞丽乐芙不出现
+	EXTEND_TOP baldur.bcs ~%SCRIPTS%/no_saerileth.baf~
+
+END

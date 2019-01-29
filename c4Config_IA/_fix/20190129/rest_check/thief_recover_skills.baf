@@ -1,0 +1,40 @@
+
+// 法术恢复
+IF
+	PartyRested()
+	Kit(Player%PN%,c4Q06Thief)
+	LevelGT(Player%PN%,1)
+	!TriggerOverride(Player%PN%,HaveKnownSpellRES("c4QCS1"))
+	!GlobalTimerNotExpired("c4QD_SkillCheck_1_Player%PN%","Global")
+THEN
+	RESPONSE #100
+		SetGlobalTimer("c4QD_SkillCheck_1_Player%PN%","Global",EIGHT_HOURS)
+		ReallyForceSpellRES("c4QCS1R",Player%PN%)
+		Continue()
+END
+
+IF
+	PartyRested()
+	Kit(Player%PN%,c4Q06Thief)
+	LevelGT(Player%PN%,1)
+	!TriggerOverride(Player%PN%,HaveKnownSpellRES("c4QCS2"))
+	!GlobalTimerNotExpired("c4QD_SkillCheck_2_Player%PN%","Global")
+THEN
+	RESPONSE #100
+		SetGlobalTimer("c4QD_SkillCheck_2_Player%PN%","Global",EIGHT_HOURS)
+		ReallyForceSpellRES("c4QCS2R",Player%PN%)
+		Continue()
+END
+
+IF
+	PartyRested()
+	Kit(Player%PN%,c4Q06Thief)
+	LevelGT(Player%PN%,23)
+	!TriggerOverride(Player%PN%,HaveKnownSpellRES("c4QCS3"))
+	!GlobalTimerNotExpired("c4QD_SkillCheck_3_Player%PN%","Global")
+THEN
+	RESPONSE #100
+		SetGlobalTimer("c4QD_SkillCheck_3_Player%PN%","Global",EIGHT_HOURS)
+		ReallyForceSpellRES("c4QCS3R",Player%PN%)
+		Continue()
+END

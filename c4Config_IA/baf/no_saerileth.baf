@@ -1,0 +1,9 @@
+
+//强制塞丽乐芙不出现
+IF
+	Exists("Saerileth")
+THEN
+	RESPONSE #100
+		ActionOverride("Saerileth",DestroySelf())
+		Continue()
+END

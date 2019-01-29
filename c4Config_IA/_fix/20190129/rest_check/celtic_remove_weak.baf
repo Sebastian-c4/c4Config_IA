@@ -1,0 +1,10 @@
+
+IF
+	PartyRested()
+	Kit(Player%PN%,c4CelticBard)
+	TriggerOverride(Player%PN%,Global("c4CelticBard_Weak","Locals",1))
+THEN
+	RESPONSE #100
+		ReallyForceSpellRES("c4cbwek0",Player%PN%)
+		Continue()
+END

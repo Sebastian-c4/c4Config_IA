@@ -1,0 +1,12 @@
+DEFINE_ACTION_FUNCTION 20190129_1 BEGIN
+
+	OUTER_SPRINT fix_root ~%mod_root%/_fix/20190129~
+	
+	//猫形态移除猛扑
+	COPY_EXISTING_REGEXP GLOB ~c4QDT[1-4]B.itm~ override
+		LPF ALTER_ITEM_HEADER INT_VAR range=1 END
+	
+	//mrk
+	COPY_EXISTING ring01.itm ~%marker_loc%/20190129_1.mrk~
+
+END

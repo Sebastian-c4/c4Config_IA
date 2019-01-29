@@ -1,0 +1,9 @@
+c4efOBV			True()
+c4MonkP			Kit(Player%slot%,c4Monk)
+c4cbOBV			NONE
+c4IK1				Kit(Player%slot%,WIZARDSLAYER)
+c4IK2				Kit(Player%slot%,BEASTMASTER)
+c4QA				Kit(Player%slot%,c4Q06Fighter)
+c4QB				Kit(Player%slot%,c4Q06Paladin)
+c4QC				Kit(Player%slot%,c4Q06Thief)
+c4QD				Kit(Player%slot%,c4Q06Shaman)

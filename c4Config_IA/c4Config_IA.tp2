@@ -1,0 +1,34 @@
+BACKUP ~_c4mods_external/c4Config_IA/backup~
+AUTHOR ~c4demon@gmail.com~
+
+AUTO_EVAL_STRINGS
+
+AUTO_TRA ~%tra_loc%/lang/%s~
+
+ALWAYS
+	
+	OUTER_SPRINT mod_root c4Config_IA
+  OUTER_SPRINT base_language "schinese"
+  INCLUDE "c4Config_IA/lib/_immutatable.tph"
+	INCLUDE "c4Config_IA/lib/_always.tph"
+	
+END
+
+LANGUAGE
+  ~简体中文~ 	~schinese~
+							~c4Config_IA/lang/schinese/prompts/prompts-%WEIDU_OS%.tra~
+							~c4Config_IA/lang/schinese/setup.tra~
+  
+BEGIN ~预设修改~
+DESIGNATED 1
+REQUIRE_PREDICATE GAME_IS ~bgee bg2ee eet~ @-10000
+
+LAF run STR_VAR file=initial file_loc=components END
+
+BEGIN ~fix~
+DESIGNATED 2
+REQUIRE_COMPONENT "c4Config_IA/c4Config_IA.tp2" "1" @-1
+NO_LOG_RECORD
+
+LAF run STR_VAR file=fix file_loc=components END
+
