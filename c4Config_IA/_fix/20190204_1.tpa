@@ -25,6 +25,11 @@ DEFINE_ACTION_FUNCTION 20190204_1 BEGIN
 		LAF create_observer INT_VAR create_script=0 STR_VAR name=~%creature_1%~ conditions END
 	END
 	
+	//塞丽乐芙不出现脚本放在最开始
+	COPY_EXISTING baldur.bcs override
+		R_B_B ~%SCRIPTS%/no_saerileth.baf~ ~override/blank.bcs~
+	EXTEND_TOP_REGEXP ~baldur.*\.bcs~ ~%SCRIPTS%/no_saerileth.baf~
+	
 	//mrk
 	COPY_EXISTING ring01.itm ~%marker_loc%/20190204_1.mrk~
 
