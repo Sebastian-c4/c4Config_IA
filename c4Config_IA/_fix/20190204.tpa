@@ -1,0 +1,105 @@
+DEFINE_ACTION_FUNCTION 20190204 BEGIN
+
+	OUTER_SPRINT fix_root ~%mod_root%/_fix/20190204~
+	
+	//地牢创建新容器
+	ACTION_DEFINE_ASSOCIATIVE_ARRAY new_containers BEGIN
+		c4NCAMM	=> bag05
+		c4NCGEM	=> bag02
+		c4NCSCR	=> bag03
+		c4NCHLD	=> bag04
+		c4NCPTN	=> bag06
+	END
+
+	ACTION_PHP_EACH new_containers AS new => old BEGIN
+		COPY_EXISTING ~%old%.sto~ ~override/%new%.sto~
+
+		COPY_EXISTING ~%old%.itm~ ~override/%new%.itm~
+			WRITE_ASCIIE 0x3a ~%new%~
+	END
+
+	ACTION_BASH_FOR ~%fix_root%~ ~c4NC.*\.bam~ BEGIN
+		COPY ~%BASH_FOR_FILESPEC%~ override
+	END
+
+	EXTEND_TOP ar0602.bcs ~%fix_root%/new_containers.baf~
+	
+	//绝地三型半径3码
+	COPY_EXISTING c4efjj3a.spl override
+		LPF ALTER_SPELL_HEADER INT_VAR projectile= (IDS_OF_SYMBOL (missile c4ef105)) END
+		LPF ALTER_EFFECT INT_VAR match_opcode=12 dicesize=8 dicenumber=1 END
+		GET_OFFSET_ARRAY headers SPL_V10_HEADERS
+		PHP_EACH headers AS int => index BEGIN
+			READ_SHORT index+0x10 min_level
+			SET damage=min_level/4
+			GET_OFFSET_ARRAY2 effect index SPL_V10_HEAD_EFFECTS
+			PHP_EACH effect AS int => offset BEGIN
+				READ_SHORT offset opcode
+				PATCH_IF opcode=12 BEGIN
+					WRITE_LONG offset+4 damage
+				END
+			END
+		END
+		
+	ALTER_TLK BEGIN
+		REPLACE_TEXTUALLY 
+			~但每轮可对半径[0-9]+呎范围内的敌人造成2D6\+1/每2级的挥砍伤害，攻击同时会解除自身隐形效果。~
+			~但每轮可对半径3呎范围内的敌人造成1D8+1点/每4级的挥砍伤害，攻击同时会解除自身隐形效果。~
+	END
+	
+	//自然变形7
+	COPY_EXISTING_REGEXP GLOB ~c4QDT[1-4][ABC].spl~ override
+		LPF ALTER_SPELL_HEADER INT_VAR target=7 END
+		WRITE_SHORT 0x22 10
+
+	COPY_EXISTING ~c4QDT00.spl~ override
+		LPF ALTER_SPELL_HEADER INT_VAR target=7 speed=0 END
+		WRITE_SHORT 0x22 10
+		
+	COPY_EXISTING_REGEXP GLOB ~c4QDT[1-4]+.spl~ override
+		READ_LONG 0x50 desc
+		GET_STRREF desc desc
+		INNER_PATCH_SAVE desc ~%desc%~ BEGIN
+			// REPLACE_TEXTUALLY ~%LNL%-施法时间：0~ ~~
+			// REPLACE_TEXTUALLY ~%LNL%-施法时间：3~ ~~
+			REPLACE_TEXTUALLY ~-施法时间：3\(%LNL%-变回原形并结束变形效果\)~ ~-施法时间：0\1~
+		END
+		SAY 0x50 ~%desc%~
+		
+	//治疗之触每级1D6+2
+	COPY_EXISTING c4QDC4.spl override
+		READ_LONG 0x50 desc
+		GET_STRREF desc desc
+		INNER_PATCH_SAVE desc ~%desc%~ BEGIN
+			REPLACE_TEXTUALLY ~恢复2D6\+2点/每等级的生命值，最高40D6\+40~ ~每等级可使目标恢复1D6+2点生命值，最高20D6+40~
+		END
+		SAY 0x50 ~%desc%~
+		
+	COPY_EXISTING c4QDC4X.spl override c4QDC4Y.spl override
+		READ_LONG 0x50 desc
+		GET_STRREF desc desc
+		INNER_PATCH_SAVE desc ~%desc%~ BEGIN
+			REPLACE_TEXTUALLY ~40D6\+40~ ~20D6+40~
+		END
+		SAY 0x50 ~%desc%~
+		
+	COPY_EXISTING c4QDC4A.spl override
+		LPF ALTER_HEADER_EFFECTS_AS_LEVEL INT_VAR match_opcode=17 parameter1=2 multi_parameter1=2 dicenumber=1 multi_dicenumber=1 END
+		
+	COPY_EXISTING c4QDC4B.spl override
+		LPF ALTER_EFFECT INT_VAR match_opcode=17 parameter1=40 dicenumber=20 END
+		
+	COPY_EXISTING c4QDC4C.spl override
+		LPF ALTER_EFFECT INT_VAR match_opcode=17 parameter1=60 dicenumber=30 END
+		
+	COPY_EXISTING c4QDC4D.spl override
+		LPF ALTER_EFFECT INT_VAR match_opcode=17 parameter1=20 dicenumber=10 END
+	
+	//1PP版任意门动画
+	// COPY ~%fix_root%/spdimndr.bam~ override
+	// COPY ~%fix_root%/spdimndr.vvc~ override
+	
+	//mrk
+	COPY_EXISTING ring01.itm ~%marker_loc%/20190204.mrk~
+
+END

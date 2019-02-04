@@ -1,0 +1,13 @@
+
+IF
+	Global("c4_new_containers","ar0602",0)
+THEN
+	RESPONSE #100
+		ActionOverride("chest7",CreateItem("c4NCAMM",0,0,0))
+		ActionOverride("chest7",CreateItem("c4NCGEM",0,0,0))
+		ActionOverride("chest7",CreateItem("c4NCSCR",0,0,0))
+		ActionOverride("chest7",CreateItem("c4NCHLD",0,0,0))
+		ActionOverride("chest7",CreateItem("c4NCPTN",0,0,0))
+		SetGlobal("c4_new_containers","ar0602",1)
+		Continue()
+END
