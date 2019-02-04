@@ -1,0 +1,11 @@
+ACTION_DEFINE_ASSOCIATIVE_ARRAY old_observers BEGIN
+	c4efOBV ,	c4efO			=>		~NONE~
+	c4MonkP ,	c4MonkO		=>		~Kit(Player%slot%,c4Monk)~
+	c4cbOBV ,	c4cbO			=>		~NONE~
+	c4IK1 ,		c4IK1O		=>		~Kit(Player%slot%,WIZARDSLAYER)~
+	c4IK2 ,		c4IK2O		=>		~Kit(Player%slot%,BEASTMASTER)~
+	c4QA ,		c4QAO			=>		~Kit(Player%slot%,c4Q06Fighter)~
+	c4QB ,		c4QBO			=>		~Kit(Player%slot%,c4Q06Paladin)~
+	c4QC ,		c4QCO			=>		~Kit(Player%slot%,c4Q06Thief)~
+	c4QD ,		c4QDO			=>		~Kit(Player%slot%,c4Q06Shaman)~
+END

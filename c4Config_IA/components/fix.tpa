@@ -2,6 +2,9 @@ DEFINE_ACTION_FUNCTION fix BEGIN
 
 	ACTION_BASH_FOR ~%mod_root%/_fix~ ~.*\.tpa~ BEGIN
 		ACTION_IF NOT FILE_EXISTS ~%marker_loc%/%BASH_FOR_RES%.mrk~ BEGIN
+			ACTION_IF NOT FILE_EXISTS ~%marker_loc%/20190204_1.mrk~ BEGIN
+				REINCLUDE ~%LIBS%/_functions.tpa~
+			END
 			LAF run STR_VAR file=~%BASH_FOR_RES%~ file_loc=_fix END
 		END
 	END

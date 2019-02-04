@@ -734,10 +734,11 @@ END
 IF
 	InPartyAllowDead(Player%slot%)
 	%conditions%
-	// !Exists("%name%%c4obvNUM%")
+	!TriggerOverride(Player%slot%,InMyArea("%name%%c4obvNUM%"))
 	!GlobalTimerNotExpired("%name%%c4obvNUM%_Exists_Timer","Global")
 THEN
 	RESPONSE #100
+		SetGlobalTimer("%name%%c4obvNUM%_Exists_Timer","Global",6)
 		CreateCreatureImpassable("%name%%c4obvNUM%",[1.1],0)
 		Continue()
 END
@@ -749,7 +750,7 @@ IF
 	%conditions%
 THEN
 	RESPONSE #100
-		SetGlobalTimer("%name%%c4obvNUM%_Exists_Timer","Global",3)
+		SetGlobalTimer("%name%%c4obvNUM%_Exists_Timer","Global",6)
 END
 
 IF
@@ -779,9 +780,11 @@ DEFINE_ACTION_FUNCTION remove_observer INT_VAR total=6 remove_script=1 STR_VAR n
 		ACTION_IF remove_script BEGIN
 			ACTION_IF FILE_EXISTS ~override/%name%%c4obvNUM%.bcs~ BEGIN
 				DELETE ~override/%name%%c4obvNUM%.bcs~
+				DELETE ~override/%name%%c4obvNUM%.cre~
 			END
 			ACTION_IF FILE_EXISTS_IN_GAME ~%name%%c4obvNUM%.bcs~ BEGIN
 				DISABLE_FROM_KEY ~%name%%c4obvNUM%.bcs~
+				DISABLE_FROM_KEY ~%name%%c4obvNUM%.cre~
 			END
 		END
 	END

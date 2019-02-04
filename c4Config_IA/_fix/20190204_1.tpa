@@ -1,0 +1,31 @@
+DEFINE_ACTION_FUNCTION 20190204_1 BEGIN
+
+	OUTER_SPRINT fix_root ~%mod_root%/_fix/20190204~
+	
+	//任意门动画错误复制=
+	ACTION_IF FILE_EXISTS ~override/spdimndr.bam~ BEGIN DELETE ~override/spdimndr.bam~ END
+	ACTION_IF FILE_EXISTS ~override/spdimndr.vvc~ BEGIN DELETE ~override/spdimndr.vvc~ END
+	
+	//卡顿	
+	INCLUDE ~%fix_root%/observers.tph~
+		
+	ACTION_PHP_EACH old_observers AS creature => conditions BEGIN		
+		OUTER_FOR (slot=1;slot<7;++slot) BEGIN
+			COPY_EXISTING ~%creature_0%%slot%.bcs~ ~override/%creature_1%%slot%.bcs~
+				DECOMPILE_AND_PATCH BEGIN
+					REPLACE_TEXTUALLY ~"%creature_0%_Exists_Time","Global",[0-9])~ ~"%creature_1%_Exists_Time","Global",6)~
+				END
+		END
+		
+		ACTION_IF ~%conditions%~ STR_EQ ~NONE~ BEGIN OUTER_SPRINT conditions ~~ END
+		
+		LAF remove_observer INT_VAR remove_script=1 STR_VAR name=~%creature_0%~ conditions END
+
+		REINCLUDE ~%LIBS%/_functions.tpa~
+		LAF create_observer INT_VAR create_script=0 STR_VAR name=~%creature_1%~ conditions END
+	END
+	
+	//mrk
+	COPY_EXISTING ring01.itm ~%marker_loc%/20190204_1.mrk~
+
+END

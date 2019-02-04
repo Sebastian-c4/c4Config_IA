@@ -3,7 +3,10 @@ ACTION_IF !VARIABLE_IS_SET always_once_section BEGIN
 	OUTER_SET always_once_section = 1
 	
 	OUTER_TEXT_SPRINT LIBS			~%mod_root%/lib~
+	OUTER_TEXT_SPRINT CREATURES ~%mod_root%/cre~
+	OUTER_TEXT_SPRINT EFFECTS 	~%mod_root%/eff~
 	OUTER_TEXT_SPRINT FONTS		 	~%mod_root%/font~
+	OUTER_TEXT_SPRINT ITEMS 		~%mod_root%/itm~
 	OUTER_TEXT_SPRINT LUAS	 		~%mod_root%/lua~
 	OUTER_TEXT_SPRINT SCRIPTS 	~%mod_root%/baf~
 	OUTER_TEXT_SPRINT SPELLS 		~%mod_root%/spl~
@@ -14,10 +17,16 @@ ACTION_IF !VARIABLE_IS_SET always_once_section BEGIN
 	//存档文件夹
 	COPY ~engine.lua~ ~engine.lua~
     REPLACE_TEXTUALLY ~engine_name[ %TAB%]*=[ %TAB%]*".*"~ ~engine_name = "BG2EE_IA_c4Customized"~
+		BUT_ONLY
 
 	OUTER_PATCH_SAVE ~USER_DIRECTORY_c4IA~ ~%USER_DIRECTORY%~ BEGIN
 		REPLACE_TEXTUALLY ~Baldur's Gate II - Enhanced Edition~ ~BG2EE_IA_c4Customized~
 	END
+
+	COPY ~%LIBS%/_functions.tpa~ ~%workspace%/old_functions.tpa~
+		REPLACE_TEXTUALLY ~!TriggerOverride(Player%slot%,InMyArea("%name%%c4obvNUM%"))~ ~~
+		REPLACE_TEXTUALLY ~SetGlobalTimer("%name%%c4obvNUM%_Exists_Timer","Global",6)~ ~~
+	INCLUDE ~%workspace%/old_functions.tpa~
 
 END
 
