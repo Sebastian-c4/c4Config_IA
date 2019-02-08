@@ -12,23 +12,40 @@ DEFINE_ACTION_FUNCTION 20190204_1 BEGIN
 	ACTION_PHP_EACH old_observers AS creature => conditions BEGIN		
 		OUTER_FOR (slot=1;slot<7;++slot) BEGIN
 			COPY_EXISTING ~%creature_0%%slot%.bcs~ ~override/%creature_1%%slot%.bcs~
-				DECOMPILE_AND_PATCH BEGIN
-					REPLACE_TEXTUALLY ~"%creature_0%_Exists_Time","Global",[0-9])~ ~"%creature_1%_Exists_Time","Global",6)~
-				END
 		END
 		
 		ACTION_IF ~%conditions%~ STR_EQ ~NONE~ BEGIN OUTER_SPRINT conditions ~~ END
-		
-		LAF remove_observer INT_VAR remove_script=1 STR_VAR name=~%creature_0%~ conditions END
 
-		REINCLUDE ~%LIBS%/_functions.tpa~
-		LAF create_observer INT_VAR create_script=0 STR_VAR name=~%creature_1%~ conditions END
+		<<<<<<<< .../c4_inlined/create_observer_baldur.baf
+			IF
+				InPartyAllowDead(Player%slot%)
+				%conditions%		
+				!GlobalTimerNotExpired("%name%%c4obvNUM%_Exists_Timer","Global")
+			THEN
+				RESPONSE #100					
+					CreateCreatureImpassable("%name%%c4obvNUM%",[1.1],0)
+					Continue()
+			END
+		>>>>>>>>
+		
+		LAF remove_observer_old INT_VAR remove_script=1 STR_VAR name=~%creature_0%~ conditions END
+
+		<<<<<<<< .../c4_inlined/create_observer_baldur.baf
+		IF
+			InPartyAllowDead(Player%slot%)
+			%conditions%
+			!TriggerOverride(Player%slot%,InMyArea("%name%%c4obvNUM%"))
+			!GlobalTimerNotExpired("%name%%c4obvNUM%_Exists_Timer","Global")
+		THEN
+			RESPONSE #100
+				SetGlobalTimer("%name%%c4obvNUM%_Exists_Timer","Global",6)
+				CreateCreatureImpassable("%name%%c4obvNUM%",[1.1],0)
+				Continue()
+		END
+		>>>>>>>>
+
+		LAF create_observer_old INT_VAR create_script=0 STR_VAR name=~%creature_1%~ conditions END
 	END
-	
-	//塞丽乐芙不出现脚本放在最开始
-	COPY_EXISTING baldur.bcs override
-		R_B_B ~%SCRIPTS%/no_saerileth.baf~ ~override/blank.bcs~
-	EXTEND_TOP_REGEXP ~baldur.*\.bcs~ ~%SCRIPTS%/no_saerileth.baf~
 	
 	//mrk
 	COPY_EXISTING ring01.itm ~%marker_loc%/20190204_1.mrk~

@@ -17,13 +17,25 @@ DEFINE_ACTION_FUNCTION 20190129 BEGIN
 			END
 			SPRINT $obv2(~%value1%~) ~%value2%~
 		END
+
+	<<<<<<<< .../c4_inlined/create_observer_baldur.baf
+	IF
+		InPartyAllowDead(Player%slot%)
+		%conditions%		
+		!GlobalTimerNotExpired("%name%%c4obvNUM%_Exists_Timer","Global")
+	THEN
+		RESPONSE #100			
+			CreateCreatureImpassable("%name%%c4obvNUM%",[1.1],0)
+			Continue()
+	END
+	>>>>>>>>
 		
 	ACTION_PHP_EACH obv AS name => conditions BEGIN
-		LAF remove_observer INT_VAR remove_script=0 STR_VAR name conditions END
+		LAF remove_observer_old INT_VAR remove_script=0 STR_VAR name conditions END
 	END
 		
 	ACTION_PHP_EACH obv2 AS name => conditions BEGIN
-		LAF create_observer INT_VAR create_script=0 STR_VAR name conditions END
+		LAF create_observer_old INT_VAR create_script=0 STR_VAR name conditions END
 	END
 	
 	//自然等职业休息判断提到baldur顶部

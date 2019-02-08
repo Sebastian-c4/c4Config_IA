@@ -13,6 +13,8 @@ ACTION_IF !VARIABLE_IS_SET always_once_section BEGIN
 	
 	INCLUDE ~%LIBS%/_A7functions.tpa~
 	INCLUDE ~%LIBS%/_functions.tpa~
+	INCLUDE ~%LIBS%/_functions_old.tpa~
+	INCLUDE ~%LIBS%/replace_multiline.tpa~
 	
 	//存档文件夹
 	COPY ~engine.lua~ ~engine.lua~
@@ -22,11 +24,6 @@ ACTION_IF !VARIABLE_IS_SET always_once_section BEGIN
 	OUTER_PATCH_SAVE ~USER_DIRECTORY_c4IA~ ~%USER_DIRECTORY%~ BEGIN
 		REPLACE_TEXTUALLY ~Baldur's Gate II - Enhanced Edition~ ~BG2EE_IA_c4Customized~
 	END
-
-	COPY ~%LIBS%/_functions.tpa~ ~%workspace%/old_functions.tpa~
-		REPLACE_TEXTUALLY ~!TriggerOverride(Player%slot%,InMyArea("%name%%c4obvNUM%"))~ ~~
-		REPLACE_TEXTUALLY ~SetGlobalTimer("%name%%c4obvNUM%_Exists_Timer","Global",6)~ ~~
-	INCLUDE ~%workspace%/old_functions.tpa~
 
 END
 

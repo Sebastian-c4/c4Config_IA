@@ -1,0 +1,213 @@
+DEFINE_ACTION_FUNCTION 20190208 BEGIN
+
+	OUTER_SPRINT fix_root ~%mod_root%/_fix/20190208~
+	
+	////bug高隐
+	COPY_EXISTING spwii41.spl override
+		FOR (i=33;i<38;++i) BEGIN
+			LPF DELETE_EFFECT INT_VAR match_opcode=i END
+		END
+		SAY 0x08 ~强力隐形~
+
+	////自然
+	//迅捷
+	COPY_EXISTING c4QDB1P.spl ~override/c4QDC6P.spl~
+		LPF DELETE_EFFECT INT_VAR match_opcode=139 END
+		LPF DELETE_EFFECT INT_VAR match_opcode=189 END
+		
+	COPY_EXISTING c4QDC6.spl override c4QDC6X.spl override
+		LPF CLONE_EFFECT INT_VAR match_opcode=146 timing=1 duraiton=0 STR_VAR resource=c4QDC6P END
+		READ_LONG 0x50 desc
+		GET_STRREF desc desc
+		INNER_PATCH_SAVE desc ~%desc%~ BEGIN
+			REPLACE_TEXTUALLY ~在施放下一个法术时可实现瞬发~ ~可立刻施放下一个法术~
+		END
+		SAY 0x50 ~%desc%~
+		
+	COPY_EXISTING_REGEXP GLOB ~.*\.spl~ override
+		LPF CLONE_EFFECT INT_VAR silent=1 check_headers=0 match_opcode=321 STR_VAR match_resource=c4QDB1P resource=c4QDC6P END
+		BUT_ONLY
+		
+	//星涌
+	COPY_EXISTING c4QDB5.spl override c4QDB5X.spl override c4QDB5Y.spl override
+		LPF ALTER_SPELL_HEADER INT_VAR speed=5 END
+		
+	//威严
+	COPY_EXISTING c4QDGB8.spl override
+		READ_LONG 0x50 desc
+		GET_STRREF desc desc
+		INNER_PATCH_SAVE desc ~%desc%~ BEGIN
+			REPLACE_TEXTUALLY ~星火：暴击概率25%~ ~星火：暴击概率30%~
+			REPLACE_TEXTUALLY ~星涌：暴击概率10%~ ~星涌：暴击概率15%~
+		END
+		SAY 0x50 ~%desc%~
+		
+	COPY_EXISTING c4QDB3Y.spl override
+		LPF ALTER_EFFECT INT_VAR probability2=31 STR_VAR match_resource=c4QDB3B END
+		LPF ALTER_EFFECT INT_VAR probability1=30 STR_VAR match_resource=c4QDB3C END
+		LPF ALTER_EFFECT INT_VAR probability1=30 STR_VAR match_resource=c4QDB3P END
+		READ_LONG 0x50 desc
+		GET_STRREF desc desc
+		INNER_PATCH_SAVE desc ~%desc%~ BEGIN
+			REPLACE_TEXTUALLY ~25%~ ~30%~
+		END
+		SAY 0x50 ~%desc%~
+		
+	COPY_EXISTING c4QDB5Y.spl override
+		LPF ALTER_EFFECT INT_VAR probability2=16 STR_VAR match_resource=c4QDB5B END
+		LPF ALTER_EFFECT INT_VAR probability1=15 STR_VAR match_resource=c4QDB5C END
+		LPF ALTER_EFFECT INT_VAR probability1=15 STR_VAR match_resource=c4QDB5P END
+		READ_LONG 0x50 desc
+		GET_STRREF desc desc
+		INNER_PATCH_SAVE desc ~%desc%~ BEGIN
+			REPLACE_TEXTUALLY ~10%~ ~15%~
+		END
+		SAY 0x50 ~%desc%~
+
+	////卡顿
+	ACTION_DEFINE_ASSOCIATIVE_ARRAY old_observers BEGIN
+		c4efOBV ,	c4efO	,		c4efO_		=>		~NONE~
+		c4MonkP ,	c4MonkO ,	c4mkO_		=>		~Kit(Player%slot%,c4Monk)~
+		c4cbOBV ,	c4cbO	,		c4cbO_		=>		~NONE~
+		c4IK1 ,		c4IK1O	,	c4IK1O_		=>		~Kit(Player%slot%,WIZARDSLAYER)~
+		c4IK2 ,		c4IK2O	,	c4IK2O_		=>		~Kit(Player%slot%,BEASTMASTER)~
+		c4QA ,		c4QAO	,		c4QAO_		=>		~Kit(Player%slot%,c4Q06Fighter)~
+		c4QB ,		c4QBO	,		c4QBO_		=>		~Kit(Player%slot%,c4Q06Paladin)~
+		c4QC ,		c4QCO	,		c4QCO_		=>		~Kit(Player%slot%,c4Q06Thief)~
+		c4QD ,		c4QDO	,		c4QDO_		=>		~Kit(Player%slot%,c4Q06Shaman)~
+	END
+
+	<<<<<<<< .../c4temp.baf
+	IF
+		True()
+	THEN
+		RESPONSE #100
+			DestroySelf()
+	END
+	>>>>>>>>
+	COMPILE ~.../c4temp.baf~
+
+	ACTION_PHP_EACH old_observers AS creature => conditions BEGIN
+
+		ACTION_IF ~%conditions%~ STR_EQ ~NONE~ BEGIN OUTER_SPRINT conditions ~~ END
+		LAF create_observer INT_VAR create_script=1 STR_VAR name=~%creature_2%~ conditions END
+
+		<<<<<<<< .../c4_inlined/c4temp1.baf
+		IF
+			True()
+		THEN
+			RESPONSE #100
+				SetGlobalTimer("%creature_1%%slot%_Exists_Timer","Global",6)
+				Continue()
+		END
+		>>>>>>>>
+		<<<<<<<< .../c4_inlined/c4temp2.baf
+		IF
+			!GlobalTimerNotExpired("%creature_1%%slot%_Exists_Timer","Global")
+			%conditions%
+		THEN
+			RESPONSE #100
+				SetGlobalTimer("%creature_1%%slot%_Exists_Timer","Global",6)
+		END
+
+		IF
+			!GlobalTimerNotExpired("%creature_1%%slot%_Exists_Timer","Global")
+		THEN
+			RESPONSE #100
+				DestroySelf()
+		END
+		>>>>>>>>
+		<<<<<<<< .../c4_inlined/c4temp3.baf
+		IF
+			!GlobalTimerNotExpired("%creature_1%%slot%_Exists_Timer","Global")
+			True()
+		THEN
+			RESPONSE #100
+				SetGlobalTimer("%creature_1%%slot%_Exists_Timer","Global",6)
+		END
+
+		IF
+			!GlobalTimerNotExpired("%creature_1%%slot%_Exists_Timer","Global")
+		THEN
+			RESPONSE #100
+				DestroySelf()
+		END
+		>>>>>>>>
+		
+		OUTER_FOR (slot=1;slot<7;++slot) BEGIN
+			COPY_EXISTING blank.bcs ~override/c4temp1.bcs~
+			EXTEND_BOTTOM c4temp1.bcs ~.../c4_inlined/c4temp1.baf~ EVAL EVAL
+			COPY_EXISTING blank.bcs ~override/c4temp2.bcs~
+			EXTEND_BOTTOM c4temp2.bcs ~.../c4_inlined/c4temp2.baf~ EVAL EVAL
+			COPY_EXISTING blank.bcs ~override/c4temp3.bcs~
+			EXTEND_BOTTOM c4temp3.bcs ~.../c4_inlined/c4temp3.baf~ EVAL EVAL
+			
+			COPY_EXISTING ~%creature_1%%slot%.bcs~ override
+				DECOMPILE_AND_PATCH BEGIN
+					REPLACE_TEXTUALLY ~"%creature_0%%slot%_Exists_Timer","Global",[0-9])~
+														~"%creature_1%%slot%_Exists_Timer","Global",6)~
+					REPLACE_TEXTUALLY ~"%creature_0%%slot%_Exists_Timer","Global")~
+														~"%creature_1%%slot%_Exists_Timer","Global")~
+				END
+				R_B_B ~override/c4temp1.bcs~ ~override/blank.bcs~ ON_MISMATCH END
+				R_B_B ~override/c4temp2.bcs~ ~override/blank.bcs~ ON_MISMATCH END
+				R_B_B ~override/c4temp3.bcs~ ~override/blank.bcs~ ON_MISMATCH END
+			
+			EXTEND_BOTTOM ~%creature_2%%slot%.bcs~ ~override/%creature_1%%slot%.bcs~			
+			
+			COPY_EXISTING ~%creature_2%%slot%.cre~ ~override/%creature_0%%slot%.cre~
+				WRITE_ASCIIE 0x248 ~%creature_0%%slot%~ (8)
+				WRITE_ASCIIE 0x280 ~%creature_0%%slot%~ (32)
+			COPY_EXISTING ~%creature_2%%slot%.cre~ ~override/%creature_1%%slot%.cre~
+				WRITE_ASCIIE 0x248 ~%creature_1%%slot%~ (8)
+				WRITE_ASCIIE 0x280 ~%creature_1%%slot%~ (32)
+			COPY_EXISTING c4temp.bcs ~override/%creature_0%%slot%.bcs~
+										c4temp.bcs ~override/%creature_1%%slot%.bcs~
+
+		END
+		
+		//残余
+		ACTION_IF ~%conditions%~ STR_EQ ~NONE~ BEGIN OUTER_SPRINT conditions ~~ END
+
+		<<<<<<<< .../c4_inlined/create_observer_baldur.baf
+			IF
+				InPartyAllowDead(Player%slot%)
+				%conditions%		
+				!GlobalTimerNotExpired("%name%%c4obvNUM%_Exists_Timer","Global")
+			THEN
+				RESPONSE #100					
+					CreateCreatureImpassable("%name%%c4obvNUM%",[1.1],0)
+					Continue()
+			END
+		>>>>>>>>
+		
+		LAF remove_observer_old INT_VAR remove_script=0 STR_VAR name=~%creature_0%~ conditions END
+
+		<<<<<<<< .../c4_inlined/create_observer_baldur.baf
+		IF
+			InPartyAllowDead(Player%slot%)
+			%conditions%
+			!TriggerOverride(Player%slot%,InMyArea("%name%%c4obvNUM%"))
+			!GlobalTimerNotExpired("%name%%c4obvNUM%_Exists_Timer","Global")
+		THEN
+			RESPONSE #100
+				SetGlobalTimer("%name%%c4obvNUM%_Exists_Timer","Global",6)
+				CreateCreatureImpassable("%name%%c4obvNUM%",[1.1],0)
+				Continue()
+		END
+		>>>>>>>>
+		
+		LAF remove_observer_old INT_VAR remove_script=0 STR_VAR name=~%creature_1%~ conditions END
+		
+		REINCLUDE ~%LIBS%/_functions.tpa~
+	END
+
+	DELETE ~override/c4temp.bcs~
+	DELETE ~override/c4temp1.bcs~
+	DELETE ~override/c4temp2.bcs~
+	DELETE ~override/c4temp3.bcs~
+	
+	//mrk
+	COPY_EXISTING ring01.itm ~%marker_loc%/20190208.mrk~
+
+END

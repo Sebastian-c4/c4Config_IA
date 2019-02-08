@@ -1,0 +1,80 @@
+
+	DEFINE_ACTION_FUNCTION remove_observer_old INT_VAR total=6 remove_script=1 STR_VAR name=~~ conditions=~~ BEGIN
+		ACTION_IF total != 6 BEGIN
+			OUTER_SPRINT c4obvNUM ~~
+			OUTER_SET total=1
+		END
+		
+		OUTER_FOR (slot=1;slot<=total;slot+=1) BEGIN
+			ACTION_IF total=6 BEGIN OUTER_SET c4obvNUM=slot END
+			
+			COPY_EXISTING blank.bcs ~override/blank2.bcs~
+			EXTEND_BOTTOM blank2.bcs ~.../c4_inlined/create_observer_baldur.baf~ EVAL EVAL
+			COPY_EXISTING_REGEXP ~baldur.*\.bcs~ override
+				R_B_B ~override/blank2.bcs~ ~override/blank.bcs~ ON_MISMATCH END
+				BUT_ONLY
+			DELETE ~override/blank2.bcs~
+		
+			ACTION_IF remove_script BEGIN
+				ACTION_IF FILE_EXISTS ~override/%name%%c4obvNUM%.bcs~ BEGIN
+					DELETE ~override/%name%%c4obvNUM%.bcs~
+					DELETE ~override/%name%%c4obvNUM%.cre~
+				END
+				ACTION_IF FILE_EXISTS_IN_GAME ~%name%%c4obvNUM%.bcs~ BEGIN
+					DISABLE_FROM_KEY ~%name%%c4obvNUM%.bcs~
+					DISABLE_FROM_KEY ~%name%%c4obvNUM%.cre~
+				END
+			END
+		END
+	END
+
+	DEFINE_ACTION_FUNCTION create_observer_old INT_VAR total=6 create_script=1 STR_VAR name=~~ conditions=~~ BEGIN
+		OUTER_SET maxLength = 7
+		ACTION_IF total != 6 BEGIN
+			OUTER_SPRINT c4obvNUM ~~
+			OUTER_SET maxLength = 8
+			OUTER_SET total=1
+		END
+		
+		ACTION_IF ~%conditions%~ STR_EQ ~~ BEGIN
+			OUTER_SPRINT conditions_neg ~True()~
+		END
+
+		OUTER_SET namelength = STRING_LENGTH ~%name%~
+		ACTION_IF namelength>0 && namelength<=maxLength BEGIN
+			LAF remove_observer_old INT_VAR remove_script=0 total STR_VAR name conditions END
+			COPY_EXISTING blank.bcs ~override/c4obvtmp.bcs~
+			
+			OUTER_FOR (slot=1;slot<=total;slot+=1) BEGIN
+				ACTION_IF total=6 BEGIN OUTER_SET c4obvNUM=slot END
+			
+				COPY_EXISTING bird.cre ~override\%name%%c4obvNUM%.cre~
+					LPF ADD_CRE_EFFECT INT_VAR opcode = 293 timing = 9 target = 1 parameter2 = 1 END
+					LPF ADD_CRE_EFFECT INT_VAR opcode = 66 timing = 9 target = 1 parameter1 = 255 END
+					LPF ADD_CRE_EFFECT INT_VAR opcode = 287 timing = 9 target = 1 END
+					LPF ADD_CRE_EFFECT INT_VAR opcode = 310 timing = 9 target = 1 parameter2 = 1 END
+					WRITE_LONG 0x8 ~-1~
+					WRITE_LONG 0xc ~-1~
+					WRITE_LONG 0x28 0xc500
+					WRITE_BYTE 0x53 1
+					WRITE_BYTE 0x270 0x80
+					WRITE_ASCIIE 0xa4 ~~ #400
+					WRITE_ASCIIE 0x248 ~%name%%c4obvNUM%~ #40
+					WRITE_ASCIIE 0x280 ~%name%%c4obvNUM%~ #32
+				EXTEND_BOTTOM ~c4obvtmp.bcs~ ~.../c4_inlined/create_observer_baldur.baf~ EVAL EVAL
+				
+				ACTION_IF create_script BEGIN
+					COPY_EXISTING blank.bcs ~override/%name%%c4obvNUM%.bcs~
+					EXTEND_BOTTOM ~override/%name%%c4obvNUM%.bcs~ ~.../c4_inlined/observer.baf~ EVAL EVAL
+				END
+			END
+			
+			EXTEND_TOP_REGEXP ~baldur.*\.bcs~ ~override/c4obvtmp.bcs~
+			DELETE ~override/c4obvtmp.bcs~
+				
+		END ELSE BEGIN
+			PRINT ~Wrong creature name specified !!~
+			AT_NOW ~pause~
+		END
+	END
+	
