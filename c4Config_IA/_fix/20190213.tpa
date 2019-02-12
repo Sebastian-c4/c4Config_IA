@@ -1,0 +1,223 @@
+DEFINE_ACTION_FUNCTION 20190213 BEGIN
+
+	OUTER_SPRINT fix_root ~%mod_root%/_fix/20190213~
+	
+	//脚本生物误杀
+	<<<<<<<< .../minhp1.baf
+	IF
+		True()
+	THEN
+		RESPONSE #100
+			JumpToPoint([0.0])
+			Continue()
+	END
+	
+	IF
+		!HasItem("minhp1",Myself)
+	THEN
+		RESPONSE #100
+			CreateItem("minhp1",0,0,0)
+			FillSlot(0)
+	END
+	>>>>>>>>
+
+	ACTION_PHP_EACH old_observers AS creature => conditions BEGIN
+		
+		OUTER_FOR (slot=1;slot<7;++slot) BEGIN
+			EXTEND_TOP ~%creature_2%%slot%.bcs~ ~.../minhp1.baf~
+			COPY_EXISTING ~%creature_2%%slot%.cre~ override
+				WRITE_LONG 8 0
+				WRITE_LONG 12 0
+			
+			COPY_EXISTING ~%creature_0%%slot%.cre~ override ~%creature_1%%slot%.cre~ override
+				WRITE_SHORT 0x24 8
+				WRITE_SHORT 0x26 8
+				WRITE_BYTE 0x234 9
+				WRITE_BYTE 0x235 9
+				WRITE_BYTE 0x236 9
+				WRITE_BYTE 0x238 9
+				WRITE_BYTE 0x23a 9
+				WRITE_BYTE 0x23b 9
+				WRITE_BYTE 0x23c 9
+				WRITE_BYTE 0x23d 9
+				WRITE_BYTE 0x23e 9
+		END
+		
+	END
+
+	COPY_ALL_GAM_FILES
+		PATCH_FOR_EACH member IN 0x20 0x30 BEGIN
+			READ_LONG member player_offset
+			READ_LONG member+0x4 player_count
+			FOR (i=0;i<player_count;++i) BEGIN
+				npc_offset=player_offset+i*0x160
+				READ_LONG npc_offset+0x4 cre_offset
+				READ_ASCII cre_offset+0x280 deathvar
+				PHP_EACH old_observers AS creature => conditions BEGIN
+					PATCH_IF NOT ~%deathvar%~ STRING_CONTAINS_REGEXP ~%creature_2%~ BEGIN
+						WRITE_LONG cre_offset+0x20 0
+						WRITE_SHORT cre_offset+0x24 9999
+						WRITE_SHORT cre_offset+0x26 9999
+					END
+				END
+			END
+		END
+		BUT_ONLY
+
+	//审判日和真理剑
+	ACTION_DEFINE_ASSOCIATIVE_ARRAY alignment_319 BEGIN
+		1		=>	0b00001010
+		2		=>	0b00000110
+		3		=>	0b00001100
+		16	=>	0b00100001
+		32	=>	0b00010001
+		48	=>	0b00110000
+		17	=>	0b00101011
+		18	=>	0b00100111
+		19	=>	0b00101101
+		33	=>	0b00011011
+		34	=>	0b00010111
+		35	=>	0b00011101
+		49	=>	0b00111010
+		50	=>	0b00110110
+		51	=>	0b00111100
+	END
+
+	COPY_EXISTING_REGEXP GLOB ~.*\.itm~ override
+		GET_OFFSET_ARRAY effect ITM_V10_GEN_EFFECTS
+		PHP_EACH effect AS int => offset BEGIN
+			READ_SHORT offset opcode
+			READ_LONG offset+8 param2
+			PATCH_IF opcode=319 && param2=8 BEGIN
+				READ_LONG offset+4 param1
+				PHP_EACH alignment_319 AS int => flag BEGIN
+					PATCH_IF param1=int BEGIN
+						WRITE_BYTE 0x1e (THIS BOR ~%flag%~)
+					END
+				END
+			END
+		END
+		LPF ALTER_EFFECT INT_VAR silent=1 check_headers=0 match_opcode=319 match_parameter2=8 power=0 END
+		BUT_ONLY
+
+	//混元噬心
+	COPY_EXISTING_REGEXP GLOB ~c4mkF4[ABCDE]1.eff~ override
+		WRITE_LONG 0x24 0
+		WRITE_LONG 0x28 6
+	
+	COPY_EXISTING c4mkF4A1.eff override
+		WRITE_SHORT 0x2e 97
+	
+	COPY_EXISTING c4mkF4B1.eff override
+		WRITE_SHORT 0x2e 95
+	
+	COPY_EXISTING c4mkF4C1.eff override
+		WRITE_SHORT 0x2e 92
+	
+	COPY_EXISTING c4mkF4D1.eff override
+		WRITE_SHORT 0x2e 87
+	
+	COPY_EXISTING c4mkF4E1.eff override
+		WRITE_SHORT 0x2e 79
+		
+	//绝地双剑
+	COPY_EXISTING_REGEXP GLOB ~.*\.itm~ override
+		READ_BYTE 0x20 flag
+		PATCH_IF (~%flag%~ BAND 0b00010000) = 0 BEGIN
+			PATCH_FOR_EACH c4ef IN c4JediA c4JediB c4JediC c4JediD c4SithA c4SithB BEGIN
+				LPF CLONE_EFFECT INT_VAR silent=1 match_opcode=263 opcode=319 parameter1= IDS_OF_SYMBOL (~kit~ ~%c4ef%~) parameter2=9 power=0 END
+			END
+		END
+		BUT_ONLY	
+	
+	COPY_EXISTING_REGEXP GLOB ~c4efJW[1-4][CD].itm~ override
+		LPF ALTER_EFFECT INT_VAR silent=1 match_opcode=248 opcode=263 parameter1=1 STR_VAR match_resource=c4efpf32 resource=~~ END
+		LPF ALTER_EFFECT INT_VAR silent=1 match_opcode=248 opcode=263 parameter1=1 STR_VAR match_resource=c4efpf34 resource=~~ END
+		READ_LONG 0x54 desc
+		GET_STRREF desc desc
+		SPRINT desc_old @190213003
+		SPRINT desc_new @190213004
+		INNER_PATCH_SAVE desc ~%desc%~ BEGIN
+			REPLACE_TEXTUALLY ~%desc_old%~ ~%desc_new%~
+		END
+		SAY 0x54 ~%desc%~
+		
+	COPY_EXISTING_REGEXP GLOB ~c4efPF3[13].eff~ override
+		WRITE_SHORT 0x2c 25
+		
+	COPY_EXISTING_REGEXP GLOB ~c4efo_[1-6].bcs~ override
+		DECOMPILE_AND_PATCH BEGIN
+			LPF REPLACE_MULTILINE STR_VAR
+				pattern = ~HasItemEquipedReal("\(.+\)",\(.+\))
+									!HasItemEquipedReal("\(.+\)",\(.+\))~
+				string	= ~OR(2)
+									HasItemEquipedReal("\1",\2)
+									HasItemEquipedReal("\3",\2)
+									!CheckStat(\2,2,56)~
+			END
+			LPF REPLACE_MULTILINE STR_VAR
+				pattern = ~!HasItemEquipedReal("\(.+\)",\(.+\))
+									HasItemEquipedReal("\(.+\)",\(.+\))~
+				string	= ~False()~
+			END
+		END
+		BUT_ONLY
+		
+	COPY_EXISTING c4ef506.spl override
+		SAY 0x50 @190213006
+		
+	//回春时间
+	COPY_EXISTING_REGEXP GLOB ~c4QDC1[XY]?\.spl~ override
+		LPF ALTER_SPELL_HEADER INT_VAR projectile=1 END
+		READ_LONG 0x50 desc
+		GET_STRREF desc desc
+		SPRINT desc_old @190213007
+		SPRINT desc_new @190213008
+		INNER_PATCH_SAVE desc ~%desc%~ BEGIN
+			REPLACE_TEXTUALLY ~%desc_old%~ ~%desc_new%~
+		END
+		SAY 0x50 ~%desc%~
+		
+	ACTION_DEFINE_ASSOCIATIVE_ARRAY qdc1 BEGIN
+		15 => 20
+		12 => 16
+		9  => 12
+		6  => 8
+		3  => 4
+	END
+		
+	COPY_EXISTING_REGEXP GLOB ~c4QDC1[ABC]\.spl~ override
+		LPF ALTER_EFFECT INT_VAR match_opcode=328 match_parameter2=114 duration=25 END
+		LPF ALTER_HEADER_EFFECTS_AS_LEVEL INT_VAR match_opcode=9 duration=25 parameter1=0x35bd5000 END
+		FOR (i=6;i>0;i -= 1) BEGIN
+			LPF CLONE_EFFECT INT_VAR match_opcode=9 match_parameter2=20<<16 parameter2=(20<<16)+i STR_VAR insert=below END
+		END
+		PHP_EACH qdc1 AS match_duration => duration BEGIN
+			LPF ALTER_EFFECT INT_VAR match_opcode=17 match_duration duration END
+			LPF ALTER_EFFECT INT_VAR match_opcode=139 match_duration duration END
+		END
+		
+	//绽放
+	COPY_EXISTING_REGEXP GLOB ~c4QDC3[ABC]\.spl~ override
+		LPF ALTER_EFFECT INT_VAR match_opcode=215 duration=1 STR_VAR resource=SPBDIMSP END
+		
+	COPY_EXISTING c4QDC3V.spl override
+		LPF ALTER_EFFECT INT_VAR match_opcode=215 duration=3 STR_VAR resource=ICWRATI END
+		
+	//吞噬投射
+	COPY_EXISTING_REGEXP GLOB ~c4QDC5[GX]?\.spl~ override
+		LPF ALTER_SPELL_HEADER INT_VAR projectile=1 END
+	
+	
+	//对话文本
+	<<<<<<<< .../c4temp.d
+		REPLACE_SAY c4monkd 8		@190213001
+		REPLACE_SAY c4monkd 10	@190213002
+		REPLACE_SAY c4efdia 1		@190213002
+	>>>>>>>>
+	COMPILE ~.../c4temp.d~
+	
+	//mrk
+	COPY_EXISTING ring01.itm ~%marker_loc%/20190213.mrk~
+
+END

@@ -1,0 +1,9 @@
+
+IF
+	True()
+THEN
+	RESPONSE #100
+		DisplayStringHead(Myself,@401)
+		SetGlobal("c4AI_Buff_Start","Locals",0)
+		ChangeAIScript("c4AIbase",CLASS)
+END

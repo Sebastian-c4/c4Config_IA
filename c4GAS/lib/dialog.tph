@@ -1,0 +1,93 @@
+
+OUTER_SET strref_max=0
+ALTER_TLK BEGIN
+	++strref_max
+END
+
+COPY ~.../c4_inlined/blank.2da~ ~%workspace%/buff_spell_dialog.2da~
+APPEND_OUTER ~%workspace%/buff_spell_dialog.2da~ ~name_strref%TAB%level%TAB%type%TAB%default%TAB%mother~
+
+COPY - ~%workspace%/buff_spells_fixed.2da~ ~%workspace%/buff_spells_fixed.2da~
+	COUNT_2DA_COLS cols
+	READ_2DA_ENTRIES_NOW rows cols
+	FOR (i=1;i<rows;++i) BEGIN
+		READ_2DA_ENTRY_FORMER rows i 0 spell
+		READ_2DA_ENTRY_FORMER rows i 1 default
+		READ_2DA_ENTRY_FORMER rows i 2 type
+		READ_2DA_ENTRY_FORMER rows i 5 mother
+		PATCH_IF IS_AN_INT ~%default%~ BEGIN
+			INNER_ACTION BEGIN
+				COPY_EXISTING - ~%spell%.spl~ override
+					READ_LONG 8 name
+					PATCH_IF name>0 && name<strref_max BEGIN SET ~%spell%_name_str~=name END
+					READ_LONG 0x34 level
+					
+				// 母法术存在则读取母法术等级
+				ACTION_IF (~%mother%~ STR_CMP ~*~) && (FILE_EXISTS_IN_GAME ~%mother%.spl~) BEGIN
+					COPY_EXISTING - ~%mother%.spl~ override
+						READ_LONG 0x34 level
+				END
+					
+				//子法术无名字时用母法术名字
+				ACTION_IF (name<1 || name>=strref_max) && (~%mother%~ STR_CMP ~*~) && (FILE_EXISTS_IN_GAME ~%mother%.spl~) BEGIN
+					COPY_EXISTING - ~%mother%.spl~ override
+						READ_LONG 8 name
+						PATCH_IF name>0 && name<strref_max BEGIN SET ~%spell%_name_str~=name END
+				END ELSE BEGIN
+					ACTION_PHP_EACH lack_spell_names AS file => int BEGIN
+						ACTION_IF ~%file%~ STR_EQ ~%spell%~ BEGIN
+							OUTER_SET ~%spell%_name_str~= RESOLVE_STR_REF ((AT ~%int%~))
+						END
+					END
+					ACTION_IF !VARIABLE_IS_SET ~%spell%_name_str~ BEGIN
+						OUTER_SET ~%spell%_name_str~ = RESOLVE_STR_REF ((AT 1000))
+					END
+				END
+				
+				OUTER_SET name_str = ~%spell%_name_str~
+
+				ACTION_IF ~%mother%~ STR_EQ ~*~ BEGIN OUTER_SPRINT mother ~%spell%~ END
+				APPEND_OUTER ~%workspace%/buff_spell_dialog.2da~ ~%spell%%TAB%%name_str%%TAB%%level%%TAB%%type%%TAB%%default%%TAB%%mother%~
+				UNLESS ~%spell%%TAB%%name_str%%TAB%%level%%TAB%%type%%TAB%%default%%TAB%%mother%~
+			END
+		END
+	END
+	
+
+COMPILE EVAL ~%DLGS%/c4AIcons.d~
+
+COPY - ~%workspace%/buff_spell_dialog.2da~ ~%workspace%/buff_spell_dialog.2da~
+	SPRINT prefix @43
+	SPRINT suffix @44
+	COUNT_2DA_COLS cols
+	READ_2DA_ENTRIES_NOW rows cols
+	FOR (j=9;j>0;j -= 1) BEGIN
+		FOR (i=0;i<rows;++i) BEGIN
+			READ_2DA_ENTRY_FORMER rows i 0 spell
+			READ_2DA_ENTRY_FORMER rows i 1 name_str
+			READ_2DA_ENTRY_FORMER rows i 2 level
+			READ_2DA_ENTRY_FORMER rows i 3 type
+			READ_2DA_ENTRY_FORMER rows i 4 default
+			READ_2DA_ENTRY_FORMER rows i 5 mother
+			PATCH_IF level=j BEGIN
+				GET_STRREF name_str name
+				PHP_EACH dialog_state AS m => n BEGIN
+					PATCH_IF ~%type%~ STR_EQ ~%m%~ BEGIN SET state=n END
+				END
+				PHP_EACH activate_trans AS x => y BEGIN
+					PATCH_IF ~%type%~ STR_EQ ~%x%~ BEGIN
+						SET trans=y
+						SPRINT trans_var ~%x_1%~
+					END
+				END
+				PATCH_IF ~%type%~ STRING_CONTAINS_REGEXP ~_inn~ BEGIN
+					SPRINT spell_name ~%name%~^~%prefix%~^~%level%~^~%suffix%~
+				END ELSE SPRINT spell_name ~%name%~
+				INNER_ACTION BEGIN
+					ACTION_IF ~%type%~ STRING_CONTAINS_REGEXP ~t_~ BEGIN
+						COMPILE EVAL ~%DLGS%/buff_self.d~
+					END ELSE COMPILE EVAL ~%DLGS%/buff_team.d~
+				END
+			END
+		END
+	END

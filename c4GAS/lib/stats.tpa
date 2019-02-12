@@ -1,0 +1,78 @@
+
+DEFINE_ACTION_FUNCTION stats BEGIN
+
+	//诗人歌曲检测
+	COPY_EXISTING_REGEXP - ~.*\.spl~ override
+		GET_OFFSET_ARRAY header SPL_V10_HEADERS
+		PHP_EACH header AS int => index BEGIN
+			GET_OFFSET_ARRAY2 effect index SPL_V10_HEAD_EFFECTS 
+			PHP_EACH effect AS int => offset BEGIN
+				READ_SHORT offset opcode
+				PATCH_IF opcode=251 BEGIN
+					READ_ASCII offset+0x14 resource
+					SET $songs(~%resource%~)=1
+					SET $songs_base(~%SOURCE_RES%~)=1
+				END
+			END
+		END
+
+	ACTION_PHP_EACH songs AS name => int BEGIN
+		COPY_EXISTING ~%name%.spl~ override
+			duration=0
+			GET_OFFSET_ARRAY header SPL_V10_HEADERS
+			PHP_EACH header AS int => index BEGIN
+				GET_OFFSET_ARRAY2 effect index SPL_V10_HEAD_EFFECTS 
+				PHP_EACH effect AS int => offset BEGIN
+					READ_SHORT offset opcode
+					READ_BYTE offset+0xc timing
+					READ_LONG offset+0x8 parameter2
+					READ_LONG offset+0xe duration0
+					PATCH_IF opcode=142 && parameter2=40 && timing=10 && duration0 >= 100 THEN BEGIN
+						duration = duration0 - 25
+					END
+				END
+			END
+			
+			PATCH_IF duration>0 THEN BEGIN
+				LPF CLONE_EFFECT 
+					INT_VAR 
+						check_globals=0 match_opcode=142 match_parameter2=40 match_timing=10 multi_match=0 
+						opcode=328 target=1 duration parameter2=song_splstate savingthrow=0 resist_dispel=0 special=1
+				END
+			END ELSE BEGIN
+				LPF ADD_SPELL_EFFECT
+					INT_VAR opcode=328 target=1 duration=75 timing=10 parameter2=song_splstate special=1
+				END
+			END
+			BUT_ONLY
+	END
+
+	//施法中判断：施法时间不为0的法术，在施法效果中设置标记，施法完成后清除
+	LAF CREATE_EMPTY_SPELL STR_VAR name=c4AIcast END
+	COPY_EXISTING c4AIcast.spl override
+		LPF ADD_SPELL_EFFECT INT_VAR opcode=337 target=1 timing=1 parameter1=casting_splstate parameter2=328 END
+
+	COPY_EXISTING_REGEXP GLOB ~.*\.spl~ override
+		SET isbs=0
+		PHP_EACH songs AS song => int BEGIN
+			PATCH_IF ~%SOURCE_RES%~ STR_EQ ~%song%~ BEGIN SET isbs=1 END
+		END
+		PHP_EACH songs_base AS song => int BEGIN
+			PATCH_IF ~%SOURCE_RES%~ STR_EQ ~%song%~ BEGIN SET isbs=1 END
+		END
+		PATCH_IF isbs=0 && ~%SOURCE_RES%~ STR_CMP ~c4AIcast~ BEGIN
+			SET add=0
+			GET_OFFSET_ARRAY header SPL_V10_HEADERS
+			PHP_EACH header AS int => index BEGIN
+				READ_SHORT index+0x12 speed
+				PATCH_IF speed>0 BEGIN add=1 END
+			END
+			PATCH_IF add BEGIN
+				LPF DELETE_EFFECT INT_VAR silent=1 STR_VAR match_resource=c4AIcast END
+				LPF ADD_SPELL_CFEFFECT INT_VAR opcode=328 target=1 duration=6 parameter2=casting_splstate special=1 END
+				LPF ADD_SPELL_EFFECT INT_VAR opcode=146 target=1 timing=1 parameter2=1 insert_point=0 STR_VAR resource=c4AIcast END
+			END
+		END
+		BUT_ONLY
+
+END

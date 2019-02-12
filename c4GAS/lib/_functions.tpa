@@ -730,35 +730,14 @@ END
 
 /* **************************************** */
 
-DEFINE_ACTION_MACRO read_area_scripts BEGIN
-	COPY_EXISTING_REGEXP GLOB ~.*\.are~ override
-		READ_ASCII AREA_SCRIPT script
-		PATCH_IF STRING_LENGTH ~%script%~ >0 BEGIN
-			SPRINT $c4_area_scripts(~%SOURCE_RES%~) ~%script%~
-		END ELSE BEGIN
-			WRITE_ASCIIE AREA_SCRIPT ~%SOURCE_RES%~
-			SPRINT $c4_area_scripts(~%SOURCE_RES%~) ~%SOURCE_RES%~
-		END
-		BUT_ONLY
-		
-	ACTION_PHP_EACH c4_area_scripts AS area => script BEGIN
-		ACTION_IF NOT FILE_EXISTS_IN_GAME ~%script%.bcs~ BEGIN
-			COPY_EXISTING blank.bcs ~override/%script%.bcs~
-		END
-	END
-	
-	OUTER_SET c4_read_area=1
-END
-
 <<<<<<<< .../c4_inlined/create_observer_baldur.baf
 IF
 	InPartyAllowDead(Player%slot%)
 	%conditions%
-	!Exists("%name%%c4obvNUM%")
-	Global("%name%%c4obvNUM%_Exists","MYAREA",0)
+	// !Exists("%name%%c4obvNUM%")
+	!GlobalTimerNotExpired("%name%%c4obvNUM%_Exists_Timer","Global")
 THEN
 	RESPONSE #100
-		SetGlobal("%name%%c4obvNUM%_Exists","MYAREA",1)
 		CreateCreatureImpassable("%name%%c4obvNUM%",[1.1],0)
 		Continue()
 END
@@ -766,7 +745,15 @@ END
 
 <<<<<<<< .../c4_inlined/observer.baf
 IF
-	%conditions_neg%
+	!GlobalTimerNotExpired("%name%%c4obvNUM%_Exists_Timer","Global")
+	%conditions%
+THEN
+	RESPONSE #100
+		SetGlobalTimer("%name%%c4obvNUM%_Exists_Timer","Global",3)
+END
+
+IF
+	!GlobalTimerNotExpired("%name%%c4obvNUM%_Exists_Timer","Global")
 THEN
 	RESPONSE #100
 		DestroySelf()
@@ -779,39 +766,22 @@ DEFINE_ACTION_FUNCTION remove_observer INT_VAR total=6 remove_script=1 STR_VAR n
 		OUTER_SET total=1
 	END
 	
-	ACTION_IF NOT VARIABLE_IS_SET conditions_neg BEGIN
-		ACTION_IF ~%conditions%~ STR_EQ ~~ BEGIN
-			OUTER_SPRINT conditions_neg ~False()~
-		END ELSE OUTER_SPRINT conditions_neg ~!%conditions%~
-	END
-	
-	ACTION_IF NOT VARIABLE_IS_SET c4_read_area BEGIN
-		LAM read_area_scripts
-	END
-	
 	OUTER_FOR (slot=1;slot<=total;slot+=1) BEGIN
 		ACTION_IF total=6 BEGIN OUTER_SET c4obvNUM=slot END
 		
 		COPY_EXISTING blank.bcs ~override/blank2.bcs~
 		EXTEND_BOTTOM blank2.bcs ~.../c4_inlined/create_observer_baldur.baf~ EVAL EVAL
-		
-		SILENT
-		ACTION_PHP_EACH c4_area_scripts AS area => script BEGIN
-			COPY_EXISTING ~%script%.bcs~ override
-				R_B_B ~override/blank2.bcs~ ~override/blank.bcs~ ON_MISMATCH END
-				BUT_ONLY
-		END
+		COPY_EXISTING_REGEXP ~baldur.*\.bcs~ override
+			R_B_B ~override/blank2.bcs~ ~override/blank.bcs~ ON_MISMATCH END
+			BUT_ONLY
 		DELETE ~override/blank2.bcs~
-		VERBOSE
 	
 		ACTION_IF remove_script BEGIN
 			ACTION_IF FILE_EXISTS ~override/%name%%c4obvNUM%.bcs~ BEGIN
 				DELETE ~override/%name%%c4obvNUM%.bcs~
-				DELETE ~override/%name%%c4obvNUM%.cre~
 			END
 			ACTION_IF FILE_EXISTS_IN_GAME ~%name%%c4obvNUM%.bcs~ BEGIN
 				DISABLE_FROM_KEY ~%name%%c4obvNUM%.bcs~
-				DISABLE_FROM_KEY ~%name%%c4obvNUM%.cre~
 			END
 		END
 	END
@@ -824,39 +794,28 @@ DEFINE_ACTION_FUNCTION create_observer INT_VAR total=6 create_script=1 STR_VAR n
 		OUTER_SET maxLength = 8
 		OUTER_SET total=1
 	END
-	
-	ACTION_IF NOT VARIABLE_IS_SET conditions_neg BEGIN
-		ACTION_IF ~%conditions%~ STR_EQ ~~ BEGIN
-			OUTER_SPRINT conditions_neg ~False()~
-		END ELSE OUTER_SPRINT conditions_neg ~!%conditions%~
-	END
-	
-	ACTION_IF NOT VARIABLE_IS_SET c4_read_area BEGIN
-		LAM read_area_scripts
-	END
 
 	OUTER_SET namelength = STRING_LENGTH ~%name%~
 	ACTION_IF namelength>0 && namelength<=maxLength BEGIN
-		// LAF remove_observer INT_VAR remove_script=0 total STR_VAR name conditions END
+		LAF remove_observer INT_VAR remove_script=0 total STR_VAR name conditions END
 		COPY_EXISTING blank.bcs ~override/c4obvtmp.bcs~
 		
 		OUTER_FOR (slot=1;slot<=total;slot+=1) BEGIN
 			ACTION_IF total=6 BEGIN OUTER_SET c4obvNUM=slot END
 		
-			COPY_EXISTING bird.cre ~override/%name%%c4obvNUM%.cre~
+			COPY_EXISTING bird.cre ~override\%name%%c4obvNUM%.cre~
 				LPF ADD_CRE_EFFECT INT_VAR opcode = 293 timing = 9 target = 1 parameter2 = 1 END
 				LPF ADD_CRE_EFFECT INT_VAR opcode = 66 timing = 9 target = 1 parameter1 = 255 END
 				LPF ADD_CRE_EFFECT INT_VAR opcode = 287 timing = 9 target = 1 END
 				LPF ADD_CRE_EFFECT INT_VAR opcode = 310 timing = 9 target = 1 parameter2 = 1 END
-				REPLACE_CRE_ITEM minhp1 #0 #0 #0 ~identified&unstealable&undroppable~ ~RRING~
 				WRITE_LONG 0x8 ~-1~
 				WRITE_LONG 0xc ~-1~
 				WRITE_LONG 0x28 0xc500
 				WRITE_BYTE 0x53 1
 				WRITE_BYTE 0x270 0x80
 				WRITE_ASCIIE 0xa4 ~~ #400
-				WRITE_ASCIIE 0x258 ~%name%%c4obvNUM%~ (8)
-				WRITE_ASCIIE 0x280 ~%name%%c4obvNUM%~ (32)
+				WRITE_ASCIIE 0x248 ~%name%%c4obvNUM%~ #40
+				WRITE_ASCIIE 0x280 ~%name%%c4obvNUM%~ #32
 			EXTEND_BOTTOM ~c4obvtmp.bcs~ ~.../c4_inlined/create_observer_baldur.baf~ EVAL EVAL
 			
 			ACTION_IF create_script BEGIN
@@ -865,14 +824,7 @@ DEFINE_ACTION_FUNCTION create_observer INT_VAR total=6 create_script=1 STR_VAR n
 			END
 		END
 		
-		SILENT
-		ACTION_PHP_EACH c4_area_scripts AS area => script BEGIN
-			COPY_EXISTING ~%script%.bcs~ override
-				R_B_B ~override/c4obvtmp.bcs~ ~override/blank.bcs~ ON_MISMATCH END
-			EXTEND_TOP ~%script%.bcs~ ~override/c4obvtmp.bcs~
-		END
-		VERBOSE
-		
+		EXTEND_TOP_REGEXP ~baldur.*\.bcs~ ~override/c4obvtmp.bcs~
 		DELETE ~override/c4obvtmp.bcs~
 			
 	END ELSE BEGIN

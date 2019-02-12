@@ -1,0 +1,111 @@
+
+DEFINE_ACTION_FUNCTION set_hotkey INT_VAR ask=0 RET hotkey_tweak hotkey_selfbuff hotkey_teambuff BEGIN
+
+	DEFINE_ACTION_FUNCTION verify_hotkeys
+		STR_VAR key_1=""
+						key_2=""
+						key_3=""
+						default_1="L"
+						default_2="N"
+						default_3="M"
+		RET			key_1
+						key_2
+						key_3
+	BEGIN
+		OUTER_FOR (i=1;i<=3;i+=1) BEGIN
+			OUTER_SPRINT letter $key("%i%")
+			ACTION_IF "%letter%" STRING_MATCHES_REGEXP "^[A-Za-z]$" BEGIN
+				OUTER_SPRINT letter $default("%i%")
+			END
+			ACTION_TO_UPPER letter
+			OUTER_SPRINT $key("%i%") "%letter%"
+		END
+		ACTION_IF ("%key_1%" STR_EQ "%key_2%") || ("%key_1%" STR_EQ "%key_3%") || ("%key_2%" STR_EQ "%key_3%") BEGIN
+			OUTER_FOR (j=1;j<=3;j+=1) BEGIN
+				OUTER_SPRINT $key("%j%") $default("%j%")
+			END
+		END
+	END
+
+	ACTION_IF !VARIABLE_IS_SET use_config_file BEGIN
+		LAF check_ini STR_VAR ini=use_config_file RET use_config_file=value END
+	END
+
+	ACTION_IF use_config_file BEGIN
+		LAF check_ini STR_VAR ini=hotkey_tweak RET hotkey_tweak=value END
+		LAF check_ini STR_VAR ini=hotkey_selfbuff RET hotkey_selfbuff=value END
+		LAF check_ini STR_VAR ini=hotkey_teambuff RET hotkey_teambuff=value END
+
+		LAF verify_hotkeys
+			STR_VAR key_1="%hotkey_tweak%"
+							key_2="%hotkey_selfbuff%"
+							key_3="%hotkey_teambuff%"
+			RET			hotkey_tweak=key_1
+							hotkey_selfbuff=key_2
+							hotkey_teambuff=key_3
+		END
+	END ELSE BEGIN
+
+		OUTER_SPRINT hotkey_tweak L
+		OUTER_SPRINT hotkey_selfbuff N
+		OUTER_SPRINT hotkey_teambuff M
+		
+		ACTION_IF ask BEGIN
+			PRINT @-1
+			PRINT @-2
+			ACTION_READLN sethotkey
+			OUTER_WHILE (~%sethotkey%~ STRING_CONTAINS_REGEXP ~^[YyNn]$~) BEGIN
+				PRINT @-3
+				PRINT @-2
+				ACTION_READLN sethotkey
+			END
+		END ELSE OUTER_SPRINT sethotkey y
+
+		ACTION_IF ~%sethotkey%~ STR_EQ y BEGIN
+
+			PRINT @-4
+			ACTION_READLN hotkey_tweak
+			ACTION_TO_UPPER hotkey_tweak
+			OUTER_WHILE (~%hotkey_tweak%~ STRING_MATCHES_REGEXP ~^[A-Za-z]$~) BEGIN
+				PRINT @-3
+				PRINT @-4
+				ACTION_READLN hotkey_tweak
+				ACTION_TO_UPPER hotkey_tweak
+			END
+
+			PRINT @-5
+			ACTION_READLN hotkey_selfbuff
+			ACTION_TO_UPPER hotkey_selfbuff
+			OUTER_WHILE (~%hotkey_selfbuff%~ STRING_MATCHES_REGEXP ~^[A-Za-z]$~)
+							||	(~%hotkey_selfbuff%~ STR_EQ ~%hotkey_tweak%~)
+			BEGIN
+				ACTION_IF ~%hotkey_selfbuff%~ STR_EQ ~%hotkey_tweak%~ BEGIN
+					PRINT @-6
+				END ELSE PRINT @-3
+				PRINT @-5
+				ACTION_READLN hotkey_selfbuff
+				ACTION_TO_UPPER hotkey_selfbuff
+			END
+
+			PRINT @-7
+			ACTION_READLN hotkey_teambuff
+			ACTION_TO_UPPER hotkey_teambuff
+			OUTER_WHILE (~%hotkey_teambuff%~ STRING_MATCHES_REGEXP ~^[A-Za-z]$~)
+							||	(~%hotkey_teambuff%~ STR_EQ ~%hotkey_tweak%~)
+							||	(~%hotkey_teambuff%~ STR_EQ ~%hotkey_selfbuff%~)
+			BEGIN
+				ACTION_IF (~%hotkey_teambuff%~ STR_EQ ~%hotkey_tweak%~)
+							||	(~%hotkey_teambuff%~ STR_EQ ~%hotkey_selfbuff%~)
+				BEGIN
+					PRINT @-6
+				END ELSE PRINT @-3
+				PRINT @-7
+				ACTION_READLN hotkey_teambuff
+				ACTION_TO_UPPER hotkey_teambuff
+			END
+
+		END
+
+	END
+	
+END

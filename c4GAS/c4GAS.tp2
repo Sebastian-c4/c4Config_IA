@@ -1,0 +1,43 @@
+BACKUP ~_c4mods_external/c4GAS/backup~
+AUTHOR ~c4demon@gmail.com~
+
+VERSION ~v1.5~
+AUTO_EVAL_STRINGS
+
+README ~c4GAS/lang/%LANGUAGE%/readme.pdf~
+
+AUTO_TRA ~%tra_loc%/lang/%s~
+
+ALWAYS
+	
+	OUTER_SPRINT mod_root c4GAS
+	OUTER_SPRINT base_language "english"
+	INCLUDE "c4GAS/lib/_immutatable.tph"
+	INCLUDE "c4GAS/lib/_always.tph"
+
+END
+
+LANGUAGE  ~English~
+					~english~
+					~c4GAS/lang/english/setup.tra~
+					~c4GAS/lang/english/game.tra~
+
+LANGUAGE 	~Simplified Chinese~
+					~schinese~
+					~c4GAS/lang/schinese/prompts/prompts-%WEIDU_OS%.tra~
+					~c4GAS/lang/schinese/setup.tra~
+					~c4GAS/lang/schinese/game.tra~
+
+BEGIN  @-0
+DESIGNATED 1
+REQUIRE_PREDICATE GAME_IS ~bgee bg2ee eet~ @-10000
+
+LAF run STR_VAR file=initialise file_loc=components tra=game END
+
+BEGIN  @-100
+DESIGNATED 100
+REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~c4AIcons.dlg~ @-10001
+REQUIRE_PREDICATE NOT VARIABLE_IS_SET ~always_once_section~ ~~
+NO_LOG_RECORD
+
+LAF run STR_VAR file=reset_hotkeys file_loc=components tra=game END

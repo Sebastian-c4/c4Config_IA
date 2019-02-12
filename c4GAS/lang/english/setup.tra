@@ -1,0 +1,17 @@
+
+@-10000	= ~This mod only support Baldur's Gate Enhanced Edition, Siege of Dragonspear, Baldur's Gate II Enhanced Edition and Baldur's Gate Trilogh Enhanced Edition!~
+@-10001	= ~The core component must be installed first!~
+
+@-0 = ~c4_angel's Game Assistant Scripts (c4GAS) Core component~
+@-1 = ~Default hotkeys£ºL for Console£¬N for Self-buffing£¬M for Team-buffing.~
+@-2 = ~Do you want to change the hotkeys? (Y/N)~
+@-3 = ~You have input the wrong key(s), pleas try again.~
+@-4 = ~Please input the hotkey to call the c4GAS console in the game. 
+NOTE: the hotkey MUST be only one letter, and a NON-USED hotkey in your game.~
+@-5 = ~Please input the hotkey to start the 1-Key-Buffing process for the caster him/herself. 
+NOTE: the hotkey MUST be only one letter, and a NON-USED hotkey in your game.~
+@-6 = ~You inputed an USED hotkey. Please input another.~
+@-7 = ~Please input the hotkey to start the 1-Key-Buffing process for all team-members. 
+NOTE: the hotkey MUST be only one letter, and a NON-USED hotkey in your game.~
+
+@-100 = ~Reset Hotkeys~

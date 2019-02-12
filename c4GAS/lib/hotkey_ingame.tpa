@@ -1,0 +1,28 @@
+DEFINE_ACTION_FUNCTION hotkey_ingame BEGIN
+
+	INCLUDE ~%LIBS%/replace_multiline.tpa~
+
+	//控制台
+	COPY - ~%SCRIPTS%/hotkey.baf~ override
+		REPLACE_TEXTUALLY ~\%hotkey_tweak\%~ ~[A-Z]~
+		READ_ASCII 0 source (%SOURCE_SIZE% - 9)
+
+	COPY_EXISTING_REGEXP ~DPLAYER[23].bcs~ override
+		DECOMPILE_AND_PATCH BEGIN
+			LPF REPLACE_MULTILINE INT_VAR verbose=0 warn=0 STR_VAR pattern=~%source%~ END
+		END
+
+	EXTEND_TOP_REGEXP ~DPLAYER[23].bcs~ ~%SCRIPTS%/hotkey.baf~ EVAL
+
+	//基础脚本
+	COMPILE ~%SCRIPTS%/c4AIbase.baf~ EVAL
+		
+	COPY_EXISTING c4AIbase.bcs ~scripts/c4AIbase.bs~
+
+	APPEND ~SCRPDESC.2DA~ ~c4AIbase 999998 999999~ UNLESS ~c4AIbase~
+	COPY_EXISTING ~SCRPDESC.2DA~ ~override~
+		REPLACE ~999998~ @121
+		REPLACE ~999999~ @122
+		BUT_ONLY
+
+END

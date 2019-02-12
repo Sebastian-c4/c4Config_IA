@@ -1,0 +1,86 @@
+
+ACTION_IF !VARIABLE_IS_SET always_once_section BEGIN
+	OUTER_SET always_once_section = 1
+		
+	OUTER_SPRINT DLGS				~%mod_root%/dlg~
+	OUTER_SPRINT LIBS				~%mod_root%/lib~
+	OUTER_SPRINT SCRIPTS		~%mod_root%/baf~
+	
+	INCLUDE ~%LIBS%/_A7functions.tpa~
+	INCLUDE ~%LIBS%/_functions.tpa~
+	INCLUDE ~%LIBS%/set_hotkey.tpa~
+
+	OUTER_SET C4MODS = 1
+	OUTER_SET SR3 = (FILE_EXISTS ~override/dvsrv3.mrk~) ? 1 : 0
+	OUTER_SET SR4 = (FILE_EXISTS ~override/dvsrv4here.mrk~) ? 1 : 0
+	OUTER_SET SRR	 = (FILE_EXISTS ~override/dvsrr.mrk~) ? 1 : 0
+	OUTER_SET IA6 = (FILE_EXISTS_IN_GAME ~s!sw04.itm~) ? 1 : 0
+
+	ACTION_DEFINE_ASSOCIATIVE_ARRAY dialog_state BEGIN
+		s_arc			=> 10
+		s_div			=> 11
+		s_inn			=> 12
+		s_del			=> 13
+		s_arc_res	=> 14
+		s_div_res	=> 15
+		t_arc			=> 16
+		t_div			=> 17
+		t_inn			=> 18
+		t_del			=> 19
+		t_arc_res	=> 20
+		t_div_res	=> 21
+	END
+
+	ACTION_DEFINE_ASSOCIATIVE_ARRAY activate_trans BEGIN
+		s_arc			, c4AI_Arcane_Self_Here				=> 2
+		s_div			, c4AI_Divine_Self_Here				=> 3
+		s_inn			, c4AI_Innate_Self_Here				=> 4
+		s_del			, c4AI_Delay_Self_Here				=> 5
+		s_arc_res	, c4AI_ResistArcane_Self_Here	=> 6
+		s_div_res	, c4AI_ResistDivine_Self_Here	=> 7
+		t_arc			, c4AI_Arcane_Team_Here				=> 2
+		t_div			, c4AI_Divine_Team_Here				=> 3
+		t_inn			, c4AI_Innate_Team_Here				=> 4
+		t_del			, c4AI_Delay_Team_Here				=> 5
+		t_arc_res	, c4AI_ResistArcane_Team_Here	=> 6
+		t_div_res	, c4AI_ResistDivine_Team_Here	=> 7
+	END
+
+	ACTION_DEFINE_ASSOCIATIVE_ARRAY res_stats BEGIN
+		27	=> RESISTACID
+		28	=> RESISTCOLD
+		29	=> RESISTELECTRICITY
+		30	=> RESISTFIRE
+		31	=> MAGICDAMAGERESISTANCE
+		84	=> RESISTMAGICFIRE
+		85	=> RESISTMAGICCOLD
+		166	=> RESISTMAGIC
+		173	=> RESISTPOISON
+	END
+
+	ACTION_DEFINE_ASSOCIATIVE_ARRAY trigger_command BEGIN
+		27	=> ~CheckStatLT(%buff_target%,%param1%,RESISTACID)~
+		28	=> ~CheckStatLT(%buff_target%,%param1%,RESISTCOLD)~
+		29	=> ~CheckStatLT(%buff_target%,%param1%,RESISTELECTRICITY)~
+		30	=> ~CheckStatLT(%buff_target%,%param1%,RESISTFIRE)~
+		31	=> ~CheckStatLT(%buff_target%,%param1%,MAGICDAMAGERESISTANCE)~
+		84	=> ~CheckStatLT(%buff_target%,%param1%,RESISTMAGICFIRE)~
+		85	=> ~CheckStatLT(%buff_target%,%param1%,RESISTMAGICCOLD)~
+		166	=> ~CheckStatLT(%buff_target%,%param1%,RESISTMAGIC)~
+		173	=> ~CheckStatLT(%buff_target%,%param1%,RESISTPOISON)~
+		233	=> ~CheckStat(%buff_target%,0,%param2%)~
+		282	=> ~CheckStat(%buff_target%,0,%param2%)~
+		328	=> ~!CheckSpellState(%buff_target%,%param2%)~
+	END
+	
+	ACTION_DEFINE_ASSOCIATIVE_ARRAY lack_spell_names BEGIN
+	END
+
+	//splstate条目
+	LAF ADD_IDS_ENTRY STR_VAR idsFile=splstate.ids identifier=~c4AI_Is_Casting_A_Spell~ END
+	OUTER_SET casting_splstate = IDS_OF_SYMBOL (~splstate~ ~c4AI_Is_Casting_A_Spell~)
+
+	LAF ADD_IDS_ENTRY STR_VAR idsFile=splstate.ids identifier=~c4AI_Battle_Song~ END
+	OUTER_SET song_splstate = IDS_OF_SYMBOL (~splstate~ ~c4AI_Battle_Song~)
+
+END

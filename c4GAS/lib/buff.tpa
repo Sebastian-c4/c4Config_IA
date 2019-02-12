@@ -1,0 +1,15 @@
+
+DEFINE_ACTION_FUNCTION buff BEGIN
+
+	INCLUDE ~%LIBS%/ds/ds.tph~
+	LAF detectable_spells END
+
+	INCLUDE ~%LIBS%/buff_init.tph~
+
+	//脚本创建
+	INCLUDE ~%LIBS%/buff_scripts.tph~
+
+	//对话
+	INCLUDE ~%LIBS%/dialog.tph~
+
+END

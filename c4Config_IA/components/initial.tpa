@@ -4,7 +4,10 @@ DEFINE_ACTION_FUNCTION initial BEGIN
 	COPY ~%FONTS%/SIMHEI.ttf~ override
 	COPY ~%LUAS%/M_HEITI.LUA~ override
 
-	COPY ~%LUAS%/Baldur.LUA~ ~%USER_DIRECTORY_c4IA%/Baldur.LUA~
+	ACTION_IF NOT FILE_EXISTS ~%USER_DIRECTORY_c4IA%/Baldur.LUA~ BEGIN
+		COPY ~%LUAS%/Baldur.LUA~ ~%USER_DIRECTORY_c4IA%/Baldur.LUA~
+	END
+	COPY ~%USER_DIRECTORY_c4IA%/Baldur.LUA~ ~%USER_DIRECTORY_c4IA%/Baldur.LUA~
 		REPLACE_TEXTUALLY ~SetPrivateProfileString('Fonts','zh_CN','.+')~
 											~SetPrivateProfileString('Fonts','zh_CN','SIMHEI')~
 											

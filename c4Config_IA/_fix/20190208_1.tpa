@@ -1,0 +1,86 @@
+DEFINE_ACTION_FUNCTION 20190208_1 BEGIN
+
+	OUTER_SPRINT fix_root ~%mod_root%/_fix/20190208~
+	
+	ACTION_DEFINE_ASSOCIATIVE_ARRAY old_observers BEGIN
+		c4efOBV ,	c4efO	,		c4efO_		=>		~NONE~
+		c4MonkP ,	c4MonkO ,	c4mkO_		=>		~Kit(Player%slot%,c4Monk)~
+		c4cbOBV ,	c4cbO	,		c4cbO_		=>		~NONE~
+		c4IK1 ,		c4IK1O	,	c4IK1O_		=>		~Kit(Player%slot%,WIZARDSLAYER)~
+		c4IK2 ,		c4IK2O	,	c4IK2O_		=>		~Kit(Player%slot%,BEASTMASTER)~
+		c4QA ,		c4QAO	,		c4QAO_		=>		~Kit(Player%slot%,c4Q06Fighter)~
+		c4QB ,		c4QBO	,		c4QBO_		=>		~Kit(Player%slot%,c4Q06Paladin)~
+		c4QC ,		c4QCO	,		c4QCO_		=>		~Kit(Player%slot%,c4Q06Thief)~
+		c4QD ,		c4QDO	,		c4QDO_		=>		~Kit(Player%slot%,c4Q06Shaman)~
+	END
+	
+	<<<<<<<< .../baldur.baf
+	IF
+		G("%creature_2%%slot%",0)
+		%conditions%
+	THEN
+		RESPONSE #100
+			CreateCreatureImpassable("%creature_2%%slot%",[1.1],0)
+			SG("%creature_2%%slot%",1)
+			Continue()
+	END
+	
+	IF
+		G("%creature_2%%slot%",1)
+		%conditions%
+		!InMyArea("%creature_2%%slot%")
+	THEN
+		RESPONSE #100
+			MoveGlobalObjectOffScreen("%creature_2%%slot%",Player1)
+			Continue()
+	END
+	>>>>>>>>
+	<<<<<<<< .../observer.baf
+	IF
+		Global("makeglobal","Locals",0)
+	THEN
+		RESPONSE #100
+			MakeGlobal()
+			SetGlobal("makeglobal","Locals",1)
+	END
+	>>>>>>>>		
+	
+	ACTION_PHP_EACH old_observers AS creature => conditions BEGIN
+	
+		ACTION_IF ~%conditions%~ STR_EQ ~NONE~ BEGIN OUTER_SPRINT conditions ~~ END
+		LAF remove_observer INT_VAR total=6 remove_script=0  STR_VAR name=~%creature_2%~ conditions END
+		
+		OUTER_FOR (slot=1;slot<7;++slot) BEGIN
+			EXTEND_TOP_REGEXP ~baldur.*\.bcs~ ~.../baldur.baf~ EVAL EVAL
+			
+			ACTION_IF ~%conditions%~ STR_EQ ~~ BEGIN
+				OUTER_SPRINT conditions_neg ~False()~
+			END ELSE OUTER_SPRINT conditions_neg ~!%conditions%~
+			
+			COPY_EXISTING blank.bcs ~override/blank2.bcs~
+			EXTEND_BOTTOM blank2.bcs ~.../c4_inlined/observer.baf~ EVAL EVAL
+			
+			COPY_EXISTING ~%creature_2%%slot%.bcs~ override
+				R_B_B ~override/blank2.bcs~ ~.../observer.baf~
+			DELETE ~override/blank2.bcs~
+			
+			COPY_EXISTING ~%creature_2%%slot%.cre~ override
+				WRITE_SHORT 0x24 8
+				WRITE_SHORT 0x26 8
+				WRITE_BYTE 0x234 9
+				WRITE_BYTE 0x235 9
+				WRITE_BYTE 0x236 9
+				WRITE_BYTE 0x238 9
+				WRITE_BYTE 0x23a 9
+				WRITE_BYTE 0x23b 9
+				WRITE_BYTE 0x23c 9
+				WRITE_BYTE 0x23d 9
+				WRITE_BYTE 0x23e 9
+		END
+		
+	END
+	
+	//mrk
+	COPY_EXISTING ring01.itm ~%marker_loc%/20190208_1.mrk~
+
+END

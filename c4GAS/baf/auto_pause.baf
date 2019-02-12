@@ -1,0 +1,77 @@
+IF
+	G("c4AI_Cast_Skins_Player%slot%",0)
+	OR(2)
+		SpellCast(Player%slot%,WIZARD_STONE_SKIN)
+		SpellCast(Player%slot%,CLERIC_IRONSKIN)
+THEN
+	RESPONSE #100
+		SG("c4AI_Cast_Skins_Player%slot%",1)
+		Continue()
+END
+
+IF
+	PartyRested()
+	G("c4AI_Cast_Skins_Player%slot%",1)
+  CheckStat(Player%slot%,0,88)
+THEN
+	RESPONSE #100
+		SG("c4AI_Cast_Skins_Player%slot%",0)
+		SG("c4AI_Cast_Skins_Player%slot%",0)
+		SG("c4AI_Cast_Skins_Player%slot%",0)
+		Continue()
+END
+
+IF
+	// !PartyRested()
+	TriggerOverride(Player%slot%,ActionListEmpty())
+  Global("c4AI_AutoPause_Skins","Global",1)
+  CheckStat(Player%slot%,0,88)
+	G("c4AI_Cast_Skins_Player%slot%",1)
+THEN
+  RESPONSE #100
+		SG("c4AI_Cast_Skins_Player%slot%",0)
+    DisplayStringHead(Player%slot%, %string_skin%)
+    MoveViewObject(Player%slot%,INSTANT)
+    ActionOverride(Player%slot%,PauseGame())
+		Continue()
+END
+
+IF
+	G("c4AI_Cast_ProtWeapon_Player%slot%",0)
+	OR(4)
+		SpellCast(Player%slot%,WIZARD_PROTECTION_FROM_MAGIC_WEAPONS)
+		SpellCast(Player%slot%,WIZARD_MANTLE)
+		SpellCast(Player%slot%,WIZARD_IMPROVED_MANTLE)
+		SpellCast(Player%slot%,WIZARD_ABSOLUTE_IMMUNITY)
+THEN
+	RESPONSE #100
+		SG("c4AI_Cast_ProtWeapon_Player%slot%",1)
+		Continue()
+END
+
+IF
+	PartyRested()
+	G("c4AI_Cast_ProtWeapon_Player%slot%",1)
+  CheckStat(Player%slot%,0,128)
+THEN
+	RESPONSE #100
+		SG("c4AI_Cast_ProtWeapon_Player%slot%",0)
+		SG("c4AI_Cast_ProtWeapon_Player%slot%",0)
+		SG("c4AI_Cast_ProtWeapon_Player%slot%",0)
+		Continue()
+END
+
+IF
+	// !PartyRested()
+	TriggerOverride(Player%slot%,ActionListEmpty())
+  Global("c4AI_AutoPause_Weapons","Global",1)
+  CheckStat(Player%slot%,0,128)
+	G("c4AI_Cast_ProtWeapon_Player%slot%",1)
+THEN
+  RESPONSE #100
+		SG("c4AI_Cast_ProtWeapon_Player%slot%",0)
+    DisplayStringHead(Player%slot%, %string_weapon%)
+    MoveViewObject(Player%slot%,INSTANT)
+    ActionOverride(Player%slot%,PauseGame())
+		Continue()
+END

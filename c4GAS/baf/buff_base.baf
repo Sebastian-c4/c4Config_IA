@@ -1,0 +1,13 @@
+
+IF
+  HaveSpellRES("%mother%")
+	Global("%spell_var%","Locals",%default%)
+	!GlobalTimerNotExpired("%timer%","Locals")
+  %trigger%
+THEN
+  RESPONSE #100
+		SetGlobalTimer("%timer%","Locals",30)
+    ReallyForceSpellRES("%spell%",%buff_target%)
+    RemoveSpellRES("%mother%")
+    Continue()
+END

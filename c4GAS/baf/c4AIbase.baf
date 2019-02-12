@@ -1,0 +1,160 @@
+
+////// 一键 //////
+// nobuff
+IF
+	TriggerOverride(Player1,See([ENEMY]))
+  OR(2)
+		HotKey(%hotkey_selfbuff%)
+		HotKey(%hotkey_teambuff%)
+THEN
+  RESPONSE #100
+		DisplayString(Myself,@402)
+		NoAction()
+END
+
+IF
+	TriggerOverride(Player2,See([ENEMY]))
+  OR(2)
+		HotKey(%hotkey_selfbuff%)
+		HotKey(%hotkey_teambuff%)
+THEN
+  RESPONSE #100
+		DisplayString(Myself,@402)
+		NoAction()
+END
+
+IF
+	TriggerOverride(Player3,See([ENEMY]))
+  OR(2)
+		HotKey(%hotkey_selfbuff%)
+		HotKey(%hotkey_teambuff%)
+THEN
+  RESPONSE #100
+		DisplayString(Myself,@402)
+		NoAction()
+END
+
+IF
+	TriggerOverride(Player4,See([ENEMY]))
+  OR(2)
+		HotKey(%hotkey_selfbuff%)
+		HotKey(%hotkey_teambuff%)
+THEN
+  RESPONSE #100
+		DisplayString(Myself,@402)
+		NoAction()
+END
+
+IF
+	TriggerOverride(Player5,See([ENEMY]))
+  OR(2)
+		HotKey(%hotkey_selfbuff%)
+		HotKey(%hotkey_teambuff%)
+THEN
+  RESPONSE #100
+		DisplayString(Myself,@402)
+		NoAction()
+END
+
+IF
+	TriggerOverride(Player6,See([ENEMY]))
+  OR(2)
+		HotKey(%hotkey_selfbuff%)
+		HotKey(%hotkey_teambuff%)
+THEN
+  RESPONSE #100
+		DisplayString(Myself,@402)
+		NoAction()
+END
+
+// buff
+IF
+	HotKey(%hotkey_selfbuff%)
+	Global("c4AI_ActivateBuff","Locals",1)
+THEN
+	RESPONSE #100
+		ChangeAIScript("c4AIBF00", CLASS)
+END
+
+IF
+	HotKey(%hotkey_teambuff%)
+	Global("c4AI_ActivateBuff","Locals",1)
+THEN
+	RESPONSE #100
+		ChangeAIScript("c4AIBF11", CLASS)
+END
+
+////// 自动唱歌 //////
+IF
+	// ActionListEmpty()
+	!CheckSpellState(Myself,c4AI_Is_Casting_A_Spell)
+	Class(Myself,BARD)
+	Global("c4AI_Stop_Auto_BattleSong", "Locals", 0)
+  !ModalState(BATTLESONG)
+  !CheckSpellState(Myself,c4AI_Battle_Song)
+THEN
+  RESPONSE #100
+    BattleSong()
+END
+
+////// 自动潜行区块 //////
+IF
+	ActionListEmpty()
+	!CheckSpellState(Myself,c4AI_Is_Casting_A_Spell)
+  OR(2)
+		Kit(Myself,Stalker)
+		Class(Myself,THIEF_ALL)
+  !StateCheck(Myself,STATE_INVISIBLE)
+  !ModalState(DETECTTRAPS)
+  !ModalState(STEALTH)
+  !Detect(NearestEnemyOf())
+  Global("c4AI_Stop_Auto_Hide", "Locals", 0)
+  !GlobalTimerNotExpired("c4AI_Hide_Timer","LOCALS")
+THEN
+  RESPONSE #100
+    SetGlobalTimer("c4AI_Hide_Timer","LOCALS",6)
+    Hide()
+END
+
+////// 自动攻击 //////
+//模式1：武器距离内
+IF
+  ActionListEmpty()
+	!CheckSpellState(Myself,c4AI_Is_Casting_A_Spell)
+	OR(2)
+		!StateCheck(Myself,STATE_INVISIBLE)
+		Global("c4AI_Attack_When_Invisible","Locals",1)
+	OR(2)
+		!ModalState(TURNUNDEAD)
+		Global("c4AI_Attack_When_Modal", "Locals", 1)
+	OR(2)
+		!ModalState(DETECTTRAPS)
+		Global("c4AI_Attack_When_Modal", "Locals", 1)
+  See(NearestEnemyOf())
+	Global("c4AI_Attack_Action", "Locals", 0)
+	InWeaponRange(LastSeenBy())
+THEN
+  RESPONSE #100
+    AttackReevaluate(NearestEnemyOf(),30)
+END
+
+//模式2：主动攻击
+IF
+  ActionListEmpty()
+	!CheckSpellState(Myself,c4AI_Is_Casting_A_Spell)
+	OR(2)
+		!StateCheck(Myself,STATE_INVISIBLE)
+		Global("c4AI_Attack_When_Invisible","Locals",1)
+	OR(2)
+		!ModalState(TURNUNDEAD)
+		Global("c4AI_Attack_When_Modal", "Locals", 1)
+	OR(2)
+		!ModalState(DETECTTRAPS)
+		Global("c4AI_Attack_When_Modal", "Locals", 1)
+  See(NearestEnemyOf())
+	Global("c4AI_Attack_Action", "Locals", 1)
+THEN
+  RESPONSE #100
+    AttackReevaluate(NearestEnemyOf(),30)
+END
+

@@ -25,10 +25,10 @@ REQUIRE_PREDICATE GAME_IS ~bgee bg2ee eet~ @-10000
 
 LAF run STR_VAR file=initial file_loc=components END
 
-BEGIN ~fix~
+BEGIN ~Update~
 DESIGNATED 2
 REQUIRE_COMPONENT "c4Config_IA/c4Config_IA.tp2" "1" @-1
 NO_LOG_RECORD
 
-LAF run STR_VAR file=fix file_loc=components END
+LAF run STR_VAR file=fix file_loc=components tra=game END
 

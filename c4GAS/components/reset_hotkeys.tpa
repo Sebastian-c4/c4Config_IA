@@ -1,0 +1,10 @@
+
+DEFINE_ACTION_FUNCTION reset_hotkeys BEGIN
+
+	//热键设置
+	LAF set_hotkey INT_VAR ask=0 RET hotkey_tweak hotkey_selfbuff hotkey_teambuff END
+
+	//游戏内热键
+	LAF run STR_VAR file=hotkey_ingame file_loc=lib END
+
+END

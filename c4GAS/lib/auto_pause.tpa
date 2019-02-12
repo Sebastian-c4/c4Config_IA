@@ -1,0 +1,48 @@
+
+DEFINE_ACTION_FUNCTION auto_pause BEGIN
+/*
+	//石肤
+	COPY_EXISTING spwi408.spl override sppr506.spl override
+		LPF GET_UNIQUE_FILE_NAME STR_VAR extension=eff base=~c4AI_AutoPause_SS1~ RET SS1=filename END
+		LPF CLONE_EFFECT INT_VAR match_opcode=218 opcode=177 timing=1 parameter1=0 parameter2=2 STR_VAR resource=~%SS1%~ insert=below END
+		BUT_ONLY
+	LAF CREATE_EFFECT INT_VAR opcode=187 timing=1 parameter1=1 STR_VAR name=~%SS1%~ variable=~c4AI_AutoPause_Skins~ END
+
+	LAF GET_UNIQUE_FILE_NAME STR_VAR extension=eff base=~c4AI_AutoPause_SS0~ RET SS0=filename END
+	COPY_EXISTING ~%SS1%.eff~ ~override/%SS0%.eff~
+		WRITE_LONG 0x1c 0
+
+	LAF GET_UNIQUE_FILE_NAME STR_VAR extension=spl base=~c4AI_AutoPause_SS0~ RET SS0SPL=filename END
+	LAF CREATE_EMPTY_SPELL STR_VAR name=~%SS0SPL%~ END
+	COPY_EXISTING ~%SS0SPL%.spl~ override
+		LPF ADD_SPELL_EFFECT INT_VAR opcode=177 target=2 timing=1 parameter1=0 parameter2=2 STR_VAR resource=~%SS0%~ END
+
+	//防魔武
+	COPY_EXISTING spwi611.spl override spwi708.spl override spwi808.spl override spwi907.spl override
+		LPF GET_UNIQUE_FILE_NAME STR_VAR extension=eff base=~c4AI_AutoPause_PFMW1~ RET PFMW1=filename END
+		LPF CLONE_EFFECT INT_VAR match_opcode=120 opcode=177 timing=1 parameter1=0 parameter2=2 STR_VAR resource=~%PFMW1%~ insert=below END
+		BUT_ONLY
+	LAF CREATE_EFFECT INT_VAR opcode=187 timing=1 parameter1=1 STR_VAR name=~%PFMW1%~ variable=~c4AI_AutoPause_Weapons~ END
+
+	LAF GET_UNIQUE_FILE_NAME STR_VAR extension=eff base=~c4AI_AutoPause_PFMW0~ RET PFMW0=filename END
+	COPY_EXISTING ~%PFMW1%.eff~ ~override/%PFMW0%.eff~
+		WRITE_LONG 0x1c 0
+
+	LAF GET_UNIQUE_FILE_NAME STR_VAR extension=spl base=~c4AI_AutoPause_PFMW0~ RET PFMW0SPL=filename END
+	LAF CREATE_EMPTY_SPELL STR_VAR name=~%PFMW0SPL%~ END
+	COPY_EXISTING ~%PFMW0SPL%.spl~ override
+		LPF ADD_SPELL_EFFECT INT_VAR opcode=177 target=2 timing=1 parameter1=0 parameter2=2 STR_VAR resource=~%PFMW0%~ END
+*/		
+	COPY_EXISTING_REGEXP ~baldur.*\.bcs~ override
+		string_skin= RESOLVE_STR_REF ((AT 206))
+		string_weapon= RESOLVE_STR_REF ((AT 207))
+		FOR (slot=1;slot<7;++slot) BEGIN
+			R_B_B EVAL ~%SCRIPTS%/auto_pause.baf~  ~%SCRIPTS%/auto_pause.baf~ ON_MISMATCH
+				INNER_ACTION BEGIN
+					EXTEND_TOP ~%SOURCE_RES%.bcs~ ~%SCRIPTS%/auto_pause.baf~ EVAL
+				END
+			END
+		END
+		BUT_ONLY
+
+END
