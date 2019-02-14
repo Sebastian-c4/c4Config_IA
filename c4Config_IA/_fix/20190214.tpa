@@ -1,0 +1,77 @@
+DEFINE_ACTION_FUNCTION 20190214 BEGIN
+
+	OUTER_SPRINT fix_root ~%mod_root%/_fix/20190214~
+	
+	//跟随
+	COPY_EXISTING_REGEXP GLOB ~.*\.bcs~ override
+		DECOMPILE_AND_PATCH BEGIN
+			REPLACE_TEXTUALLY ~\( Global("Iamoving","LOCALS",1)\)~ ~\1 Global("c4_Summoned_Follow","Global",1)~
+		END
+		BUT_ONLY	
+
+	//挡路
+	ACTION_DEFINE_ASSOCIATIVE_ARRAY old_observers BEGIN
+		c4efOBV ,	c4efO	,		c4efO_		=>		~NONE~
+		c4MonkP ,	c4MonkO ,	c4mkO_		=>		~Kit(Player%slot%,c4Monk)~
+		c4cbOBV ,	c4cbO	,		c4cbO_		=>		~NONE~
+		c4IK1 ,		c4IK1O	,	c4IK1O_		=>		~Kit(Player%slot%,WIZARDSLAYER)~
+		c4IK2 ,		c4IK2O	,	c4IK2O_		=>		~Kit(Player%slot%,BEASTMASTER)~
+		c4QA ,		c4QAO	,		c4QAO_		=>		~Kit(Player%slot%,c4Q06Fighter)~
+		c4QB ,		c4QBO	,		c4QBO_		=>		~Kit(Player%slot%,c4Q06Paladin)~
+		c4QC ,		c4QCO	,		c4QCO_		=>		~Kit(Player%slot%,c4Q06Thief)~
+		c4QD ,		c4QDO	,		c4QDO_		=>		~Kit(Player%slot%,c4Q06Shaman)~
+	END
+	
+	ACTION_PHP_EACH old_observers AS creature => conditions BEGIN
+		OUTER_FOR (slot=1;slot<7;++slot) BEGIN			
+			COPY_EXISTING ~%creature_2%%slot%.bcs~ override
+				DECOMPILE_AND_PATCH BEGIN
+					LPF REPLACE_MULTILINE
+						STR_VAR pattern = ~IF
+																True()
+															THEN
+																RESPONSE #100
+																	JumpToPoint(\[0.0\])
+																	Continue()
+															END~
+										string = ~IF
+																OnCreation()
+															THEN
+																RESPONSE #100
+																	ReallyForceSpellRES("c4obvspd",Myself)
+																	JumpToPoint([0.0])
+																	Continue()
+															END~ 
+					END
+				END
+		END
+	END
+	
+	LAF CREATE_EMPTY_SPELL STR_VAR name=c4obvspd END
+	COPY_EXISTING c4obvspd.spl override
+		LPF ADD_SPELL_EFFECT INT_VAR opcode=176 target=2 timing=9 parameter1=30 END	
+		LPF ADD_SPELL_EFFECT INT_VAR opcode=206 target=2 timing=9 STR_VAR resource=c4obvspd END	
+
+	COPY_ALL_GAM_FILES
+		PATCH_FOR_EACH member IN 0x20 0x30 BEGIN
+			READ_LONG member player_offset
+			READ_LONG member+0x4 player_count
+			FOR (i=0;i<player_count;++i) BEGIN
+				npc_offset=player_offset+i*0x160
+				READ_LONG npc_offset+0x4 cre_offset
+				READ_ASCII cre_offset+0x280 deathvar
+				PHP_EACH old_observers AS creature => conditions BEGIN
+					PATCH_IF NOT ~%deathvar%~ STRING_CONTAINS_REGEXP ~%creature_2%~ BEGIN
+						WRITE_LONG cre_offset+0x8 0
+						WRITE_LONG cre_offset+0xc 0
+						WRITE_LONG 0x28 0xd000
+					END
+				END
+			END
+		END
+		BUT_ONLY
+	
+	//mrk
+	COPY_EXISTING ring01.itm ~%marker_loc%/20190214.mrk~
+
+END

@@ -848,10 +848,10 @@ DEFINE_ACTION_FUNCTION create_observer INT_VAR total=6 create_script=1 STR_VAR n
 				LPF ADD_CRE_EFFECT INT_VAR opcode = 66 timing = 9 target = 1 parameter1 = 255 END
 				LPF ADD_CRE_EFFECT INT_VAR opcode = 287 timing = 9 target = 1 END
 				LPF ADD_CRE_EFFECT INT_VAR opcode = 310 timing = 9 target = 1 parameter2 = 1 END
-				REPLACE_CRE_ITEM minhp1 #0 #0 #0 ~identified&unstealable&undroppable~ ~RRING~
-				WRITE_LONG 0x8 ~-1~
-				WRITE_LONG 0xc ~-1~
-				WRITE_LONG 0x28 0xc500
+				REPLACE_CRE_ITEM minhp1 #0 #0 #0 ~identified&unstealable&undroppable~ ~AMULET~
+				WRITE_LONG 0x8 0
+				WRITE_LONG 0xc 0
+				WRITE_LONG 0x28 0xd000
 				WRITE_BYTE 0x53 1
 				WRITE_BYTE 0x270 0x80
 				WRITE_ASCIIE 0xa4 ~~ #400
