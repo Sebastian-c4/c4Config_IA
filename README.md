@@ -7,4 +7,7 @@
 
 ## 更新
 1. 重复以上3步
-2. Windows用户运行update.bat，MacOS X用户运行update.command，开始更新。注意区分用于初始安装patch文件。
+2. Windows用户运行update.bat，MacOS X用户运行update.command，开始更新。注意区分用于初始安装patch文件
+
+[完整说明文档](https://github.com/Sebastian-c4/mods_collection/blob/master/BG2EE_IA_c4Customize.md)  
+[更新历史](https://github.com/Sebastian-c4/mods_collection/blob/master/BG2EE_IA_c4Customize_Update.md)
