@@ -1,0 +1,134 @@
+DEFINE_ACTION_FUNCTION 20190217 BEGIN
+
+	OUTER_SPRINT fix_root ~%mod_root%/_fix/20190217~
+	
+	//跟随
+	COPY_EXISTING_REGEXP GLOB ~.*\.bcs~ override
+		DECOMPILE_AND_PATCH BEGIN
+			LPF REPLACE_MULTILINE INT_VAR warn=0 verbose=0
+				STR_VAR pattern = ~Global("Iamoving","LOCALS",1)
+													Global("c4_Summoned_Follow","Global",1)~
+			END
+			LPF REPLACE_MULTILINE INT_VAR warn=0 verbose=1
+				STR_VAR pattern = ~\( !\(Detect\|See\)(NearestEnemyOf(LastSummonerOf(Myself)))\)~
+								string = ~\1 Global("c4_Summoned_Follow","Global",1)~
+			END
+		END
+		BUT_ONLY
+		
+	//挡路
+	ACTION_DEFINE_ASSOCIATIVE_ARRAY old_observers BEGIN
+		c4efOBV ,	c4efO	,		c4efO_		=>		~NONE~
+		c4MonkP ,	c4MonkO ,	c4mkO_		=>		~Kit(Player%slot%,c4Monk)~
+		c4cbOBV ,	c4cbO	,		c4cbO_		=>		~NONE~
+		c4IK1 ,		c4IK1O	,	c4IK1O_		=>		~Kit(Player%slot%,WIZARDSLAYER)~
+		c4IK2 ,		c4IK2O	,	c4IK2O_		=>		~Kit(Player%slot%,BEASTMASTER)~
+		c4QA ,		c4QAO	,		c4QAO_		=>		~Kit(Player%slot%,c4Q06Fighter)~
+		c4QB ,		c4QBO	,		c4QBO_		=>		~Kit(Player%slot%,c4Q06Paladin)~
+		c4QC ,		c4QCO	,		c4QCO_		=>		~Kit(Player%slot%,c4Q06Thief)~
+		c4QD ,		c4QDO	,		c4QDO_		=>		~Kit(Player%slot%,c4Q06Shaman)~
+	END
+	
+	COPY_ALL_GAM_FILES
+		PATCH_FOR_EACH member IN 0x20 0x30 BEGIN
+			READ_LONG member player_offset
+			READ_LONG member+0x4 player_count
+			FOR (i=0;i<player_count;++i) BEGIN
+				npc_offset=player_offset+i*0x160
+				READ_LONG npc_offset+0x4 cre_offset
+				READ_ASCII cre_offset+0x280 deathvar
+				PHP_EACH old_observers AS creature => conditions BEGIN
+					PATCH_IF NOT ~%deathvar%~ STRING_CONTAINS_REGEXP ~%creature_2%~ BEGIN
+						WRITE_LONG cre_offset+0x8 ~-1~
+						WRITE_LONG cre_offset+0xc ~-1~
+						WRITE_LONG cre_offset+0x28 0xd100
+						WRITE_ASCII cre_offset+0x250 ~~ (8)
+						WRITE_ASCII cre_offset+0x260 ~~ (8)
+					END
+				END
+			END
+		END
+		BUT_ONLY
+
+	
+	<<<<<<<< .../baldur.baf
+	IF
+		G("%creature_2%%slot%",0)
+		%conditions%
+	THEN
+		RESPONSE #100
+			CreateCreatureImpassable("%creature_2%%slot%",[1.1],0)
+			SG("%creature_2%%slot%",1)
+			Continue()
+	END
+	
+	IF
+		G("%creature_2%%slot%",1)
+		%conditions%
+		!InMyArea("%creature_2%%slot%")
+	THEN
+		RESPONSE #100
+			MoveGlobalObjectOffScreen("%creature_2%%slot%",Player1)
+			Continue()
+	END
+	>>>>>>>>
+	
+	<<<<<<<< .../obv_head.baf
+	IF
+		OnCreation()
+	THEN
+		RESPONSE #100
+			ReallyForceSpellRES("c4obvspd",Myself)
+			JumpToPoint([0.0])
+			Continue()
+	END
+
+	IF
+		!HasItem("minhp1",Myself)
+	THEN
+		RESPONSE #100
+			CreateItem("minhp1",0,0,0)
+			FillSlot(SLOT_AMULET)
+	END
+
+	IF
+		Global("makeglobal","Locals",0)
+	THEN
+		RESPONSE #100
+			MakeGlobal()
+			SetGlobal("makeglobal","Locals",1)
+	END
+	>>>>>>>>
+	
+	COPY_EXISTING blank.bcs ~override/obv_temp.bcs~
+	
+	ACTION_PHP_EACH old_observers AS creature => conditions BEGIN		
+		ACTION_IF ~%conditions%~ STR_EQ ~NONE~ BEGIN OUTER_SPRINT conditions ~~ END
+		OUTER_FOR (slot=1;slot<7;++slot) BEGIN
+			COPY_EXISTING blank.bcs ~override/blank2.bcs~
+			EXTEND_BOTTOM blank2.bcs ~.../baldur.baf~ EVAL EVAL
+			COPY_EXISTING_REGEXP GLOB ~baldur.*\.bcs~ override
+				R_B_B ~override/blank2.bcs~ ~override/blank.bcs~
+				BUT_ONLY
+			DELETE ~override/blank2.bcs~
+			
+			EXTEND_BOTTOM obv_temp.bcs ~override/%creature_2%%slot%.bcs~
+			MOVE ~override/%creature_2%%slot%.bcs~ ~%workspace%~
+		END
+	END
+	
+	COPY_EXISTING obv_temp.bcs override
+		R_B_B ~.../obv_head.baf~ ~override/blank.bcs~
+		REPLACE_TEXTUALLY ~Continue()~ ~~
+		REPLACE_TEXTUALLY ~END~ ~Continue() END~
+		
+	EXTEND_TOP_REGEXP ~baldur.*\.bcs~ ~override/obv_temp.bcs~
+	MOVE ~override/obv_temp.bcs~ ~%workspace%~
+		
+	//存档
+	// INCLUDE ~%fix_root%/fix_save.tph~
+	
+	//mrk
+	COPY_EXISTING ring01.itm ~%marker_loc%/20190217.mrk~
+
+END

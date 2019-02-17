@@ -1,0 +1,48 @@
+
+	PRINT ~是否进行存档修复？（解决严重卡顿、地图左上角被堵住等情况。在安装20190208修正之后开档的无须进行修复）~
+	PRINT ~修复所需时间视存档数目决定，每个存档所需时间大概为1-2分钟，请合理安排时间。~
+	PRINT ~请选择修复方式：~
+	PRINT ~输入【0】：不进行修复~
+	PRINT ~输入【1】：仅修复自动存档、快速存档和章节自动存档（推荐）~
+	PRINT ~输入【2】：修复所有存档~
+	ACTION_READLN type
+	OUTER_WHILE (IS_AN_INT ~%type%~ && type !=0 && type !=1 && type !=2) || (NOT IS_AN_INT ~%type%~) BEGIN
+		PRINT ~
+		输入错误，请重新输入
+		~
+		PRINT ~请选择修复方式：~
+		PRINT ~输入【0】：不进行修复~
+		PRINT ~输入【1】：仅修复自动存档、快速存档和章节自动存档（推荐）~
+		PRINT ~输入【2】：修复所有存档~
+		ACTION_READLN type
+	END
+
+	ACTION_IF type BEGIN
+		LAM read_area_scripts
+
+		COPY_EXISTING bird.cre ~override/c4bird.cre~
+			WRITE_ASCII 0x258 c4efo1 (8)
+		
+		ACTION_IF type=1 BEGIN
+			GET_DIRECTORY_ARRAY save_dir ~%SAVE_DIRECTORY%~ ~0000000[01][0-9]~
+		END ELSE BEGIN ACTION_IF type=2 BEGIN
+			GET_DIRECTORY_ARRAY save_dir ~%SAVE_DIRECTORY%~ ~0.+~
+		END END
+		
+		ACTION_PHP_EACH save_dir AS int => dir BEGIN
+			PRINT ~正在修复：%dir%~
+			SILENT
+			COPY ~%dir%/baldur.sav~ ~%dir%/baldur.sav~
+				PHP_EACH c4_area_scripts AS area => script BEGIN
+					EDIT_SAV_FILE 1 ~%area%.are~ BEGIN
+						PHP_EACH old_observers AS creature => _ BEGIN
+							FOR (i=1;i<7;++i) BEGIN
+								LPF ALTER_AREA_ACTOR STR_VAR actor_name=~%creature_0%%i%~ cre_file=c4bird END
+								LPF ALTER_AREA_ACTOR STR_VAR actor_name=~%creature_1%%i%~ cre_file=c4bird END
+							END
+						END
+					END
+				END
+				BUT_ONLY
+		END
+	END

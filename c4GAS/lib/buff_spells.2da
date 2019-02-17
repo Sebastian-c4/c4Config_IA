@@ -23,6 +23,7 @@ SPPR513   0          s_div      142        64         *          *
 SPPR730   0          s_div      142        160        *          *
 SPPR505   $          s_div      142        108        *          *
 SPPR150   $          s_div      142        189        *          *
+SPWI113   0          s_arc      142        9	        *          *
 SPWI222   0          s_arc      142        163        *          *
 SPWI108   0          s_arc      142        10         *          *
 SPWI209   0          s_arc      142        32         *          *
@@ -75,6 +76,7 @@ SPPR413   0          t_div      142        90         *          *
 SPPR508   0          t_div      328        41         *          *
 SPPR507   0          t_div      142        50         *          *
 SPPR711   0          t_div      142        56         *          *
+SPWI113   0          t_arc      142        9	        *          *
 SPWI108   0          t_arc      142        10         *          *
 SPWI209   0          t_arc      142        32         *          *
 SPWI214   0          t_arc      142        21         *          *
