@@ -39,8 +39,8 @@ DEFINE_ACTION_FUNCTION 20190217 BEGIN
 				READ_ASCII cre_offset+0x280 deathvar
 				PHP_EACH old_observers AS creature => conditions BEGIN
 					PATCH_IF NOT ~%deathvar%~ STRING_CONTAINS_REGEXP ~%creature_2%~ BEGIN
-						WRITE_LONG cre_offset+0x8 ~-1~
-						WRITE_LONG cre_offset+0xc ~-1~
+						WRITE_LONG cre_offset+0x8 0
+						WRITE_LONG cre_offset+0xc 0
 						WRITE_LONG cre_offset+0x28 0xd100
 						WRITE_ASCII cre_offset+0x250 ~~ (8)
 						WRITE_ASCII cre_offset+0x260 ~~ (8)
