@@ -1,0 +1,23 @@
+/// Sphere: Lizardmen Hideout ///
+
+IF
+  InMyArea(Player1)
+  Global("Tfcre","AR0420",1)
+	!Exists("S!roec01")
+	!Dead("S!roec01")
+	!Exists("S!roec02")
+	!Dead("S!roec02")
+THEN
+   RESPONSE #100
+     SetGlobal("Tfcre","AR0420",0)
+END
+
+IF
+  Global("Tfcre","AR0420",0)
+  InMyArea(Player1)
+THEN
+   RESPONSE #100
+     SetGlobal("Tfcre","AR0420",1)
+     CreateCreature("S!roec01",[728.320],2)  //
+     CreateCreature("S!roec02",[451.418],2)  //
+END

@@ -1,0 +1,141 @@
+DEFINE_ACTION_FUNCTION 20190302 BEGIN
+
+	OUTER_SPRINT fix_root ~%mod_root%/_fix/20190302~	
+		
+	//召唤物
+	COPY_EXISTING_REGEXP GLOB ~.*\.bcs~ override
+		DECOMPILE_AND_PATCH BEGIN
+			LPF REPLACE_MULTILINE INT_VAR warn=0 STR_VAR
+				pattern =
+				~OR(2)
+					Global("c4_Summoned_Follow","Global",1)
+					Allegiance(Myself,ENEMY)~
+				string =
+				~Global("Iamoving","LOCALS",1)
+				Global("c4_Summoned_Follow","Global",1)~
+			END
+			LPF REPLACE_MULTILINE INT_VAR warn=0 STR_VAR
+				pattern =
+				~Global("Iamoving","LOCALS",0)
+				!Detect(NearestEnemyOf(Myself))
+				!Detect(NearestEnemyOf(LastSummonerOf(Myself)))
+				Global("Iamoving","LOCALS",1)~
+				string =
+				~Global("Iamoving","LOCALS",0)
+				!Detect(NearestEnemyOf(Myself))
+				!Detect(NearestEnemyOf(LastSummonerOf(Myself)))~
+			END
+			LPF REPLACE_MULTILINE INT_VAR warn=0 STR_VAR
+				pattern =
+				~THEN
+					RESPONSE #100
+						SetGlobal("Iamoving","LOCALS",0)~
+				string =
+				~!Global("Iamoving","LOCALS",0)
+				THEN
+					RESPONSE #100
+						SetGlobal("Iamoving","LOCALS",0)~
+			END
+		END
+		BUT_ONLY
+
+	//德鲁伊物品可用性
+	COPY_EXISTING_REGEXP GLOB ~.*\.itm~ override
+		READ_BYTE 0x21 use
+		PATCH_IF (~%use%~ BOR 0b01000000) != 0b01000000 BEGIN
+			WRITE_BYTE 0x1e (THIS BAND 0b11000000)
+		END
+		BUT_ONLY
+	
+	//戟伤害类型
+	COPY_EXISTING_REGEXP GLOB ~s!halb0[12].itm~ override
+		LPF ALTER_ITEM_HEADER INT_VAR damage_type=7 END
+	
+	//树精手臂
+	COPY_EXISTING ~s!blun01.itm~ override
+		PATCH_FOR_EACH parameter1 IN 4 5 255 BEGIN
+			LPF ADD_ITEM_EQEFFECT INT_VAR opcode=344 target=1 timing=2 parameter1 parameter2=3 special=5 END
+		END
+		BUT_ONLY
+	
+	//nalia
+	COPY ~%fix_root%/nalia~ override
+		
+	////the four
+	//移除条件
+	ACTION_FOR_EACH area IN 0420 1904 2101 BEGIN
+		COPY_EXISTING ~ar%area%.bcs~ override
+			R_B_B ~%fix_root%/ar%area%.baf~ ~%fix_root%/ar%area%_new.baf~
+	END
+	
+	//狂怒韵律去掉诅咒，智力
+	COPY_EXISTING ~s!bard4.itm~ override
+		LPF DELETE_EFFECT INT_VAR match_opcode=19 END
+		LPF ALTER_EFFECT INT_VAR timing=2 END
+		WRITE_BYTE 0x18 (THIS BAND 0b11101111)
+		READ_LONG 0x54 desc
+		GET_STRREF desc desc
+		INNER_PATCH_SAVE desc ~%desc%~ BEGIN
+			REPLACE_TEXTUALLY ~-智力：-6%NL%~ ~~
+			REPLACE_TEXTUALLY ~\*诅咒物品\*%NL%~ ~~
+		END
+		SAY 0x54 ~%desc%~
+		
+	//魔网手套中立可用，去掉诅咒
+	COPY_EXISTING ~s!weave4.itm~ override
+		WRITE_BYTE 0x1e 0b11000100
+		WRITE_BYTE 0x18 (THIS BAND 0b11101111)
+		READ_LONG 0x54 desc
+		GET_STRREF desc desc
+		INNER_PATCH_SAVE desc ~%desc%~ BEGIN
+			REPLACE_TEXTUALLY ~\*诅咒物品\*%NL%~ ~~
+		END
+		SAY 0x54 ~%desc%~
+		
+	//日光去掉诅咒
+	COPY_EXISTING ~s!crown4.itm~ override
+		WRITE_BYTE 0x18 (THIS BAND 0b11101111)
+		READ_LONG 0x54 desc
+		GET_STRREF desc desc
+		INNER_PATCH_SAVE desc ~%desc%~ BEGIN
+			REPLACE_TEXTUALLY ~\*诅咒物品\*%NL%~ ~~
+		END
+		SAY 0x54 ~%desc%~
+		
+	//重伤
+	COPY_EXISTING c4qaw3.spl override
+		LPF ALTER_EFFECT INT_VAR match_timing=4 timing=1 duration=0 END
+		LPF ALTER_EFFECT INT_VAR match_parameter1=16 parameter1=1 STR_VAR resource=c4qaw31 END
+		LPF ALTER_EFFECT INT_VAR match_parameter1=0 parameter1=16 STR_VAR resource=c4qaw33 END
+		LPF ALTER_EFFECT INT_VAR match_parameter1=1 parameter1=0 END
+		
+	//英勇
+	COPY_EXISTING_REGEXP GLOB ~c4qdc7[ab].spl~ override
+		LPF DELETE_EFFECT INT_VAR match_opcode=177 match_parameter1=0x13 END
+		
+	//黑猫爪
+	COPY_EXISTING c4qdt4b.itm override
+		LPF ALTER_ITEM_HEADER INT_VAR damage_type=7 END
+		
+	//和尚
+	COPY ~%fix_root%/C4MKBDX0.SPL~ override
+		
+		
+	// under the hood	
+	//和尚基础ac法术
+	COPY_EXISTING c4mkac0.spl override
+		LPF CLONE_EFFECT INT_VAR opcode=321 timing=0 parameter1=0 parameter2=0 STR_VAR resource=~%SOURCE_RES%~ END
+		BUT_ONLY
+
+	//绝地5型
+	COPY_EXISTING c4efjj5t.eff override
+		WRITE_LONG 0x2c 100
+		
+	//经院斗篷
+	COPY_EXISTING ~s!clck04.itm~ override
+		LPF ALTER_EFFECT INT_VAR match_timing=9 timing=2 END
+	
+	//mrk
+	COPY_EXISTING ring01.itm ~%marker_loc%/20190302.mrk~
+
+END
