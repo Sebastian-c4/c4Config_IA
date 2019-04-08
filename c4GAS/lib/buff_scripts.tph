@@ -48,14 +48,17 @@ COPY - ~%workspace%/buff_spells_fixed.2da~ ~%workspace%/buff_spells_fixed.2da~
 			PATCH_IF ~%mother%~ STR_EQ ~*~ BEGIN SPRINT mother ~%spell%~ END
 			INNER_ACTION BEGIN
 				COPY_EXISTING - ~%spell%.spl~ override
+					LPF FJ_SPL_ITM_REINDEX END
 					SPRINT trigger ~~
 					SET trigger_num=0
-					GET_OFFSET_ARRAY2 effect 0x72 SPL_V10_HEAD_EFFECTS
+					READ_LONG 0x64 hf
+					GET_OFFSET_ARRAY2 effect ~%hf%~ SPL_V10_HEAD_EFFECTS
 					PHP_EACH effect AS int => offset BEGIN
 						READ_SHORT offset opcode
 						READ_LONG offset+4 param1
 						READ_LONG offset+8 param2
 						
+						/* 不进行抗性判断
 						//抗性法术无须检测stats等
 						PATCH_IF NOT ~%type%~ STRING_CONTAINS_REGEXP ~_res~ BEGIN
 							PATCH_FOR_EACH opcode0 IN 27 28 29 30 31 84 85 166 BEGIN
@@ -68,8 +71,12 @@ COPY - ~%workspace%/buff_spells_fixed.2da~ ~%workspace%/buff_spells_fixed.2da~
 									END
 								END
 							END
-						END ELSE BEGIN
+						END
+						*/
+						
 						/* 不进行状态判断
+						//其他法术
+						PATCH_IF ~%type%~ STRING_CONTAINS_REGEXP ~_res~ BEGIN
 							//已有标注的直接使用
 							PATCH_IF ~%scripts%~ STR_EQ ~*~ BEGIN
 								PATCH_FOR_EACH opcode0 IN 233 282 328 BEGIN
@@ -91,8 +98,8 @@ COPY - ~%workspace%/buff_spells_fixed.2da~ ~%workspace%/buff_spells_fixed.2da~
 								END
 								SPRINT trigger ~%scripts%~
 							END
-						*/
 						END
+						*/
 
 						//团队buff默认变量
 						PATCH_IF ~%type%~ STRING_CONTAINS_REGEXP ~s_~ BEGIN	SPRINT default ~%player_slot%~ END

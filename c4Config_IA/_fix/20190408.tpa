@@ -1,0 +1,25 @@
+DEFINE_ACTION_FUNCTION 20190408 BEGIN
+
+	OUTER_SPRINT fix_root ~%mod_root%/_fix/20190408~
+	
+	//物品
+	INCLUDE ~%fix_root%/items.tph~
+	
+	//mrk
+	COPY_EXISTING ring01.itm ~%marker_loc%/20190408.mrk~
+
+	//文本
+	ALTER_TLK BEGIN
+		REPLACE_TEXTUALLY ~[ ]+~ ~%TAB%~	//换行问题
+		SPRINT del @190408201
+		REPLACE_TEXTUALLY ~%del%~ ~~
+		FOR (i=1;i<14;i+=2) BEGIN
+			SET old=190408201+i
+			SET new=190408201+i+1
+			SPRINT old (AT ~%old%~)
+			SPRINT new (AT ~%new%~)
+			REPLACE_TEXTUALLY ~%old%~ ~%new%~
+		END
+	END
+
+END

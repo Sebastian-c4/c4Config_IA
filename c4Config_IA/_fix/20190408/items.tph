@@ -1,0 +1,137 @@
+
+//错误修复
+COPY ~%fix_root%/recover~ override
+BUT_ONLY
+
+//德鲁伊物品可用性修正版本
+COPY_EXISTING_REGEXP GLOB ~.*\.itm~ override
+	READ_BYTE 0x21 use
+	PATCH_IF (~%use%~ BAND 0b01000000) = 0 BEGIN
+		WRITE_BYTE 0x1e (THIS BAND 0b11000000)
+	END
+	BUT_ONLY
+		
+//审判日和真理剑
+ACTION_DEFINE_ASSOCIATIVE_ARRAY alignment_319 BEGIN
+	0x01	=>	0b00001010	//MASK_GOOD
+	0x02	=>	0b00000110	//MASK_GENEUTRAL
+	0x03	=>	0b00001100	//MASK_EVIL
+	0x10	=>	0b00100001	//MASK_LAWFUL
+	0x20	=>	0b00010001	//MASK_LCNEUTRAL
+	0x30	=>	0b00110000	//MASK_CHAOTIC
+	/*
+	0x11	=>	0b00101011	//LAWFUL_GOOD
+	0x12	=>	0b00100111	//LAWFUL_NEUTRAL
+	0x13	=>	0b00101101	//LAWFUL_EVIL
+	0x21	=>	0b00011011	//NEUTRAL_GOOD
+	0x22	=>	0b00010111	//NEUTRAL
+	0x23	=>	0b00011101	//NEUTRAL_EVIL
+	0x31	=>	0b00111010	//CHAOTIC_GOOD
+	0x32	=>	0b00110110	//CHAOTIC_NEUTRAL
+	0x33	=>	0b00111100	//CHAOTIC_EVIL
+	*/
+END
+
+// set to 1 for do patching otherwise only print the name of the item.
+OUTER_SET patch=1
+
+COPY_EXISTING_REGEXP GLOB ~.*\.itm~ override
+	GET_OFFSET_ARRAY effect ITM_V10_GEN_EFFECTS
+	PHP_EACH effect AS int => offset BEGIN
+		READ_SHORT offset opcode
+		READ_LONG offset+8 param2
+		PATCH_IF opcode=319 && param2=8 BEGIN
+			READ_LONG offset+4 param1
+			PHP_EACH alignment_319 AS int => flag BEGIN
+				PATCH_IF param1=int BEGIN
+					PATCH_IF patch=1 BEGIN
+						WRITE_BYTE 0x1e (THIS BOR ~%flag%~)
+					END ELSE PATCH_PRINT ~%SOURCE_RES%~
+				END
+			END
+		END
+	END
+	PATCH_IF patch=1 BEGIN
+		PHP_EACH alignment_319 AS int => flag BEGIN
+			LPF ALTER_EFFECT INT_VAR silent=1 check_headers=0 match_opcode=319 match_parameter1=int match_parameter2=8 power=0 END
+		END
+	END
+	BUT_ONLY
+		
+//禁贼技物品
+COPY_EXISTING_REGEXP ~.*\.itm~ override
+	GET_OFFSET_ARRAY effect ITM_V10_GEN_EFFECTS
+	PHP_EACH effect AS int => offset BEGIN
+		READ_SHORT offset opcode
+		READ_LONG offset+0x8 param2
+		READ_BYTE offset+0xc timing
+		PATCH_IF opcode=144 && timing=9 && (param2=0 || param2=1) BEGIN
+			WRITE_BYTE offset+0xc 2
+			SET $button(~%SOURCE_RES%~) =1
+		END
+	END
+	BUT_ONLY
+
+COPY_ALL_GAM_FILES
+	PATCH_FOR_EACH member IN 0x20 0x30 BEGIN
+		READ_LONG member player_offset
+		READ_LONG member+0x4 player_count
+		FOR (i=0;i<player_count;++i) BEGIN
+			npc_offset=player_offset+i*0x160
+			READ_LONG npc_offset+0x4 cre_offset
+			READ_LONG cre_offset+0x8 name_strref
+			GET_STRREF name_strref name
+			READ_LONG cre_offset+0x244 kit /* 宗派 */
+			READ_BYTE cre_offset+0x273 class /* 职业 */			
+			//生物效果
+			READ_LONG cre_offset+0x2c4 effect_offset
+			effect_offset+=cre_offset -0x8
+			READ_LONG cre_offset+0x2c8 effect_count			
+			FOR (j=0;j<effect_count;++j) BEGIN
+				READ_LONG effect_offset + j*0x108 +0x10 opcode
+				READ_LONG effect_offset + j*0x108 +0x20 param2
+				READ_SHORT effect_offset + j*0x108 +0x24 timing
+				READ_ASCII effect_offset + j*0x108 +0x30 resource
+				READ_ASCII effect_offset + j*0x108 +0x94 parent_resource
+				READ_ASCII effect_offset + j*0x108 +0xa8 variable (32)
+				PATCH_IF opcode=144 && timing=9 && (param2=0 || param2=1) BEGIN
+					PHP_EACH button AS item => int BEGIN
+						PATCH_IF ~%parent_resource%~ STR_EQ ~%item%~ BEGIN
+							WRITE_LONG 		effect_offset + j*0x108 +0x10 0
+							WRITE_LONG 		effect_offset + j*0x108 +0x1c 0
+							WRITE_LONG 		effect_offset + j*0x108 +0x20 0
+							WRITE_SHORT		effect_offset + j*0x108 +0x24 0
+							WRITE_LONG		effect_offset + j*0x108 +0x28 0
+						END
+					END
+				END
+			END
+		END
+	END
+	BUT_ONLY
+	
+//屠龙戟
+COPY_EXISTING halb05.itm override
+	LPF ALTER_ITEM_HEADER INT_VAR damage_type=7 END
+	SAY 0x54 @190408001
+
+//龙王戟文本
+COPY_EXISTING ~s!halb01.itm~ override
+	SAY 0x54 @190408002
+
+//波塞冬戟文本
+COPY_EXISTING ~s!halb02.itm~ override
+	SAY 0x54 @190408003
+
+//林地鞋兼职游侠可用
+COPY_EXISTING ~s!boot03.itm~ override
+	FOR (i=1;i<22;++i) BEGIN
+		PATCH_IF i !=12 && i !=18 BEGIN 
+			LPF CLONE_EFFECT INT_VAR match_opcode=319 match_power=1 power=0 parameter1=i END
+		END
+	END
+	LPF DELETE_EFFECT INT_VAR match_opcode=319 match_power=1 END
+
+//湖岸行者之斧+5可用性
+COPY_EXISTING ~s!axe03.itm~ override
+	LPF ALTER_EFFECT INT_VAR match_opcode=319 parameter1 = IDS_OF_SYMBOL (~kit~ ~vagrant~) END

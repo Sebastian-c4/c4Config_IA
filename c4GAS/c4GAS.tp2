@@ -1,7 +1,7 @@
 BACKUP ~_c4mods_external/c4GAS/backup~
 AUTHOR ~c4demon@gmail.com~
 
-VERSION ~v1.5~
+VERSION ~v1.51~
 AUTO_EVAL_STRINGS
 
 README ~c4GAS/lang/%LANGUAGE%/readme.pdf~

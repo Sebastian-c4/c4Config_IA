@@ -1,35 +1,41 @@
 IF
-	G("c4AI_Cast_Skins_Player%slot%",0)
-	OR(2)
-		SpellCast(Player%slot%,WIZARD_STONE_SKIN)
-		SpellCast(Player%slot%,CLERIC_IRONSKIN)
+	G("c4AI_Skins_Player%slot%",0)
+	CheckStatGT(Player%slot%,0,88)
+	OR(4)
+		Class(Player%slot%,MAGE_ALL)
+		Class(Player%slot%,DRUID_ALL)
+		Class(Player%slot%,RANGER_ALL)
+		CheckStatGT(Player%slot%,0,191)
 THEN
 	RESPONSE #100
-		SG("c4AI_Cast_Skins_Player%slot%",1)
+		SG("c4AI_Skins_Player%slot%",1)
+		SetGlobalTimer("c4AI_Skins_Player%slot%_Timer","Global",2400)
 		Continue()
 END
 
 IF
-	PartyRested()
-	G("c4AI_Cast_Skins_Player%slot%",1)
+	OR(2)
+		PartyRested()
+		!GlobalTimerNotExpired("c4AI_Skins_Player%slot%_Timer","Global")
+	G("c4AI_Skins_Player%slot%",1)
   CheckStat(Player%slot%,0,88)
 THEN
 	RESPONSE #100
-		SG("c4AI_Cast_Skins_Player%slot%",0)
-		SG("c4AI_Cast_Skins_Player%slot%",0)
-		SG("c4AI_Cast_Skins_Player%slot%",0)
+		SG("c4AI_Skins_Player%slot%",0)
+		SG("c4AI_Skins_Player%slot%",0)
+		SG("c4AI_Skins_Player%slot%",0)
 		Continue()
 END
 
 IF
-	// !PartyRested()
+	GlobalTimerNotExpired("c4AI_Skins_Player%slot%_Timer","Global")
 	TriggerOverride(Player%slot%,ActionListEmpty())
   Global("c4AI_AutoPause_Skins","Global",1)
   CheckStat(Player%slot%,0,88)
-	G("c4AI_Cast_Skins_Player%slot%",1)
+	G("c4AI_Skins_Player%slot%",1)
 THEN
   RESPONSE #100
-		SG("c4AI_Cast_Skins_Player%slot%",0)
+		SG("c4AI_Skins_Player%slot%",0)
     DisplayStringHead(Player%slot%, %string_skin%)
     MoveViewObject(Player%slot%,INSTANT)
     ActionOverride(Player%slot%,PauseGame())
@@ -37,39 +43,41 @@ THEN
 END
 
 IF
-	G("c4AI_Cast_ProtWeapon_Player%slot%",0)
-	OR(4)
-		SpellCast(Player%slot%,WIZARD_PROTECTION_FROM_MAGIC_WEAPONS)
-		SpellCast(Player%slot%,WIZARD_MANTLE)
-		SpellCast(Player%slot%,WIZARD_IMPROVED_MANTLE)
-		SpellCast(Player%slot%,WIZARD_ABSOLUTE_IMMUNITY)
+	G("c4AI_ProtWeapon_Player%slot%",0)
+  CheckStatGT(Player%slot%,0,128)
+	OR(2)
+		Class(Player%slot%,MAGE_ALL)
+		CheckStatGT(Player%slot%,0,191)
 THEN
 	RESPONSE #100
-		SG("c4AI_Cast_ProtWeapon_Player%slot%",1)
+		SG("c4AI_ProtWeapon_Player%slot%",1)
+		SetGlobalTimer("c4AI_ProtWeapon_Player%slot%_Timer","Global",2400)
 		Continue()
 END
 
 IF
-	PartyRested()
-	G("c4AI_Cast_ProtWeapon_Player%slot%",1)
+	OR(2)
+		PartyRested()
+		!GlobalTimerNotExpired("c4AI_ProtWeapon_Player%slot%_Timer","Global")
+	G("c4AI_ProtWeapon_Player%slot%",1)
   CheckStat(Player%slot%,0,128)
 THEN
 	RESPONSE #100
-		SG("c4AI_Cast_ProtWeapon_Player%slot%",0)
-		SG("c4AI_Cast_ProtWeapon_Player%slot%",0)
-		SG("c4AI_Cast_ProtWeapon_Player%slot%",0)
+		SG("c4AI_ProtWeapon_Player%slot%",0)
+		SG("c4AI_ProtWeapon_Player%slot%",0)
+		SG("c4AI_ProtWeapon_Player%slot%",0)
 		Continue()
 END
 
 IF
-	// !PartyRested()
+	GlobalTimerNotExpired("c4AI_ProtWeapon_Player%slot%_Timer","Global")
 	TriggerOverride(Player%slot%,ActionListEmpty())
   Global("c4AI_AutoPause_Weapons","Global",1)
   CheckStat(Player%slot%,0,128)
-	G("c4AI_Cast_ProtWeapon_Player%slot%",1)
+	G("c4AI_ProtWeapon_Player%slot%",1)
 THEN
   RESPONSE #100
-		SG("c4AI_Cast_ProtWeapon_Player%slot%",0)
+		SG("c4AI_ProtWeapon_Player%slot%",0)
     DisplayStringHead(Player%slot%, %string_weapon%)
     MoveViewObject(Player%slot%,INSTANT)
     ActionOverride(Player%slot%,PauseGame())

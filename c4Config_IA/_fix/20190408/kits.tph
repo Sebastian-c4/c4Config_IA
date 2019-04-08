@@ -1,0 +1,192 @@
+
+/* 武器附魔6->5 */	
+	
+//咏誓之弦
+COPY_EXISTING c4cbmh.spl override
+	SAY 0x50 @190408101
+	
+COPY_EXISTING c4cbmh.itm override
+	WRITE_LONG 0x60 5
+	SAY 0x54 @190408102
+	
+//暗影之矛
+COPY_EXISTING c4ef704.spl override
+	SAY 0x50 @190408103
+	
+COPY_EXISTING c4ef704.itm override
+	WRITE_LONG 0x60 5
+	SAY 0x54 @190408104
+	
+//原力武装
+COPY_EXISTING c4ef604.spl override
+	LPF ALTER_EFFECT INT_VAR match_opcode=345 parameter1=5 END
+	SAY 0x54 @190408105
+	
+//光剑
+COPY_EXISTING_REGEXP GLOB ~c4ef[js]w[23][ab]\.itm~ override
+	WRITE_LONG 0x60 5
+	SPRINT desc_old @190408106
+	SPRINT desc_new @190408107
+	READ_LONG 0x54 desc
+	GET_STRREF desc desc
+	INNER_PATCH_SAVE desc ~%desc%~ BEGIN
+		REPLACE_TEXTUALLY ~%desc_old%~ ~%desc_new%~
+	END
+	SAY 0x54 ~%desc%~
+	
+//混元拳头
+COPY_EXISTING_REGEXP GLOB ~c4mkbf[0-9]+\.itm~ override
+	READ_LONG 0x60 enc
+	PATCH_IF enc=6 BEGIN
+		WRITE_LONG 0x60 5
+		SAY 0x08 @190408108
+		SAY 0x0c @190408108
+	END
+	
+//自然终极
+COPY_EXISTING_REGEXP GLOB ~c4qdt4[abc]\.itm~ override
+	WRITE_LONG 0x60 5
+	
+COPY_EXISTING_REGEXP GLOB ~c4qdt4[1-7]\.spl~ override
+	SPRINT desc_old @190408109
+	SPRINT desc_new @190408110
+	READ_LONG 0x50 desc
+	GET_STRREF desc desc
+	INNER_PATCH_SAVE desc ~%desc%~ BEGIN
+		REPLACE_TEXTUALLY ~%desc_old%~ ~%desc_new%~
+	END
+	SAY 0x54 ~%desc%~
+
+/* 次要类型修改 */
+ACTION_DEFINE_ASSOCIATIVE_ARRAY sectype BEGIN
+	c4ef101		=> 2 //原力吸收
+	c4ef102		=> 2
+	c4ef103		=> 7 //原力屏障
+	c4ef104		=> 7
+	c4ef204		=> 7 //原力幻影
+	c4ef205		=> 7
+	c4ef402		=> 1 //原力偏折
+	c4ef403		=> 1
+	c4ef604		=> 6 //原力武装
+	c4ef704		=> 6 //暗影之矛
+	c4qas2c		=> 7 //盾墙
+END
+
+ACTION_PHP_EACH sectype AS spell => type BEGIN
+	COPY_EXISTING ~%spell%.spl~ override
+		WRITE_BYTE 0x27 type
+		BUT_ONLY
+END
+
+COPY_EXISTING_REGEXP GLOB ~.*\.spl~ override
+	SET patch=0
+	GET_OFFSET_ARRAY headers SPL_V10_HEADERS
+	PHP_EACH headers AS int => index BEGIN
+		GET_OFFSET_ARRAY2 effect index SPL_V10_HEAD_EFFECTS
+		PHP_EACH effect AS int => offset BEGIN
+			READ_SHORT offset opcode
+			PATCH_IF opcode=58 BEGIN
+				READ_SHORT offset+8 type
+				PATCH_IF type=0 BEGIN
+					SET patch=1
+				END
+			END
+		END
+	END
+	PATCH_IF patch BEGIN
+		PATCH_FOR_EACH item IN c4qbg17 c4cbmh c4ef704 BEGIN
+			LPF CLONE_EFFECT INT_VAR match_opcode=58 opcode=112 STR_VAR resource=~%item%~ insert=below END
+		END
+	END
+	BUT_ONLY
+
+//法猎技能
+COPY_EXISTING_REGEXP GLOB ~.*\.\(spl\|itm\|cre\)~ override
+	LPF CLONE_EFFECT INT_VAR silent=1 match_opcode=206 parameter1=4742 STR_VAR match_resource=spwi704 resource=~c4ik1d02~ END
+	LPF CLONE_EFFECT INT_VAR silent=1 match_opcode=206 parameter1=4742 STR_VAR match_resource=spwi513 resource=~c4ik1wb0~ END
+	BUT_ONLY
+
+//5型移动速度+50%，触发概率递减
+COPY_EXISTING c4efjj5.itm override
+	LPF ADD_ITEM_EQEFFECT INT_VAR opcode=176 target=1 timing=2 parameter1=150 parameter2=2 END
+	
+COPY_EXISTING c4efjj5t.spl override
+	GET_OFFSET_ARRAY headers SPL_V10_HEADERS
+	PHP_EACH headers AS int => index BEGIN
+		READ_SHORT index+0x10 min_level
+		SET prob = (min_level=1) ? 25 : (min_level=21) ? 20 : 15
+		GET_OFFSET_ARRAY2 effect index SPL_V10_HEAD_EFFECTS
+		PHP_EACH effect AS int => offset BEGIN
+			WRITE_BYTE offset+0x12 prob
+		END
+	END
+
+//7型时间
+COPY_EXISTING c4efjj7y.spl override
+	FOR (i=1;i<7;++i) BEGIN
+		LPF CLONE_EFFECT INT_VAR match_opcode=297 opcode=206 parameter2=0 STR_VAR resource=~c4efjj7%i%~ END
+	END
+	
+COPY_EXISTING_REGEXP GLOB ~baldur.*\.bcs~ override
+	DECOMPILE_AND_PATCH BEGIN
+		REPLACE_TEXTUALLY ~CheckStat(\(Player[1-6]\),0,187)~ ~CheckStatLT(\1,255,187)~
+	END
+
+//白银光环删动画
+COPY_EXISTING_REGEXP GLOB ~c4qba[1-5]a.spl~ override
+	LPF DELETE_EFFECT INT_VAR match_opcode=146 STR_VAR match_resource=c4qbavvc END
+	
+//自然赐福删特效
+COPY_EXISTING_REGEXP GLOB ~c4qdc2[ab].spl~ override
+	LPF DELETE_EFFECT INT_VAR match_opcode=8 END
+	
+//盾牌格挡10%
+COPY_EXISTING c4qam3a.eff override
+	WRITE_SHORT 0x2e 82
+	
+//反击风暴
+COPY_EXISTING c4qas2a.spl override
+	LPF CREATE_HEADERS_AS_LEVEL INT_VAR level_increment=6 level_multiplier=3 END
+	PATCH_FOR_EACH match_opcode IN 232 142 215 BEGIN
+		LPF ALTER_HEADER_EFFECTS_AS_LEVEL INT_VAR match_opcode duration=6 multi_duration=6 END
+	END
+
+//鲁莽
+COPY_EXISTING c4qas2b.spl override
+	LPF CREATE_HEADERS_AS_LEVEL INT_VAR level_increment=10 level_multiplier=5 END
+	PATCH_FOR_EACH match_opcode IN 142 27 28 29 30 31 86 87 88 89 301 9 BEGIN
+		LPF ALTER_HEADER_EFFECTS_AS_LEVEL INT_VAR match_opcode duration=6 multi_duration=6 END
+	END
+
+//盾墙
+COPY_EXISTING c4qas2c.spl override
+	LPF CREATE_HEADERS_AS_LEVEL INT_VAR level_increment=8 level_multiplier=4 END
+	PATCH_FOR_EACH match_opcode IN 142 27 28 29 30 31 86 87 88 89 9 BEGIN
+		LPF ALTER_HEADER_EFFECTS_AS_LEVEL INT_VAR match_opcode duration=36 multi_duration=6 END
+	END
+
+COPY_EXISTING spwish12.spl override c4qas2c.spl override
+	PATCH_IF ~%SOURCE_RES%~ STR_EQ spwish12 BEGIN
+		SPRINT clear c4qas2c
+	END ELSE SPRINT clear spwish12
+	LPF ADD_SPELL_EFFECT INT_VAR insert_point=0 opcode=321 target=2 STR_VAR resource=~%clear%~ END
+	BUT_ONLY
+
+//激怒须姿态
+COPY_EXISTING c4qam11.spl override c4qam31.spl override
+	LPF CLONE_EFFECT INT_VAR multi_match=1 match_opcode=206 STR_VAR resource=c4qab2a END
+	
+COPY_EXISTING c4qab2.spl override
+	SAY 0x50 @190408111
+
+//复苏之风须姿态
+COPY_EXISTING c4qam21.spl override c4qam31.spl override
+	LPF CLONE_EFFECT INT_VAR multi_match=1 match_opcode=206 STR_VAR resource=c4qaw6a END
+	
+COPY_EXISTING c4qaw6.spl override
+	SAY 0x50 @190408112
+
+//丛林猎手删命中
+COPY_EXISTING c4qdgnb.spl override
+	LPF DELETE_EFFECT INT_VAR match_opcode=284 END
+	SAY 0x50 @190408113

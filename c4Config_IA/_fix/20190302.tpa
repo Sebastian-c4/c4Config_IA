@@ -38,7 +38,7 @@ DEFINE_ACTION_FUNCTION 20190302 BEGIN
 			END
 		END
 		BUT_ONLY
-
+/*
 	//德鲁伊物品可用性
 	COPY_EXISTING_REGEXP GLOB ~.*\.itm~ override
 		READ_BYTE 0x21 use
@@ -46,7 +46,7 @@ DEFINE_ACTION_FUNCTION 20190302 BEGIN
 			WRITE_BYTE 0x1e (THIS BAND 0b11000000)
 		END
 		BUT_ONLY
-	
+*/	
 	//戟伤害类型
 	COPY_EXISTING_REGEXP GLOB ~s!halb0[12].itm~ override
 		LPF ALTER_ITEM_HEADER INT_VAR damage_type=7 END
@@ -130,10 +130,6 @@ DEFINE_ACTION_FUNCTION 20190302 BEGIN
 	//绝地5型
 	COPY_EXISTING c4efjj5t.eff override
 		WRITE_LONG 0x2c 100
-		
-	//经院斗篷
-	COPY_EXISTING ~s!clck04.itm~ override
-		LPF ALTER_EFFECT INT_VAR match_timing=9 timing=2 END
 	
 	//mrk
 	COPY_EXISTING ring01.itm ~%marker_loc%/20190302.mrk~

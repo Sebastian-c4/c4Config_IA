@@ -1,0 +1,16 @@
+DEFINE_ACTION_FUNCTION call_console BEGIN
+
+	INCLUDE ~%LIBS%/replace_multiline.tpa~
+
+	COPY - ~%SCRIPTS%/hotkey.baf~ override
+		REPLACE_TEXTUALLY ~\%hotkey_tweak\%~ ~[A-Z]~
+		READ_ASCII 0 source (%SOURCE_SIZE% - 9)
+
+	COPY_EXISTING_REGEXP ~DPLAYER[23].bcs~ override
+		DECOMPILE_AND_PATCH BEGIN
+			LPF REPLACE_MULTILINE INT_VAR verbose=0 warn=0 STR_VAR pattern=~%source%~ END
+		END
+
+	EXTEND_BOTTOM_REGEXP ~DPLAYER[23].bcs~ ~%SCRIPTS%/hotkey.baf~ EVAL
+
+END

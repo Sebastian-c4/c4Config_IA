@@ -1,0 +1,13 @@
+
+//Ã÷Ë¹¿ËÆÆÏÕ
+IF
+	InParty(Myself)
+	!Kit(Myself,RISKBREAKER)
+	AreaCheck("ar0602")
+	Difficulty(EASIEST)
+THEN
+	RESPONSE #100
+		ReallyForceSpellRES("c4kminsc",Myself)
+		Wait(1)
+		AddKit(RISKBREAKER)
+END

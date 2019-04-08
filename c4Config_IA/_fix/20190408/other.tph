@@ -1,0 +1,58 @@
+
+//邪兽鬼守序邪恶
+COPY_EXISTING_REGEXP GLOB ~.*\.cre~ override
+	READ_BYTE 0x272 race
+	PATCH_IF race=128 BEGIN
+		WRITE_BYTE 0x27b 0x13
+	END
+	BUT_ONLY
+	
+//连锁意外8小时
+COPY_EXISTING spwi908.spl override
+	LPF ALTER_EFFECT INT_VAR match_duration=4700 duration=2350 END
+
+//香格拉，地狱，狄摩高根位置
+ACTION_FOR_EACH script IN ~shangalr~ ~cut85b~ ~s!cutdmi~ BEGIN
+	COPY_EXISTING ~%script%.bcs~ override
+		DECOMPILE_AND_PATCH BEGIN
+			REPLACE_TEXTUALLY ~Player\([1-6]\)~ ~PartySlot\1~
+		END
+		BUT_ONLY
+END
+	
+//杀戮者技能
+COPY baldur.exe baldur.exe
+	WRITE_ASCII 0x4a6fe4 ~~ (8)
+	BUT_ONLY
+
+//rasaad
+COPY_EXISTING rasaad.bcs override
+	R_B_B ~%SCRIPTS%/rasaad_kit.baf~ ~%fix_root%/baf/rasaad.baf~
+
+//minsc
+EXTEND_TOP ~minsc.bcs~ ~%fix_root%/baf/minsc.baf~
+
+LAF CREATE_EMPTY_SPELL STR_VAR name=c4kminsc END
+COPY_EXISTING c4kminsc.spl override
+	PATCH_FOR_EACH parameter1 IN 93 98 102 111 114 BEGIN
+		LPF ADD_SPELL_EFFECT INT_VAR opcode=337 target=2 timing=1 parameter1 parameter2=233 END
+	END
+	PATCH_FOR_EACH parameter2 IN 91 100 114 BEGIN
+		LPF ADD_SPELL_EFFECT INT_VAR opcode=233 target=2 timing=1 parameter1=2 parameter2 END
+	END
+	
+//yoshimo
+EXTEND_TOP ~yoshimo.bcs~ ~%fix_root%/baf/yoshimo.baf~
+	
+//imoen
+EXTEND_TOP ~c4kimoen.bcs~ ~%fix_root%/baf/imoen.baf~
+
+LAF CREATE_EMPTY_SPELL STR_VAR name=c4kimoen END
+COPY_EXISTING c4kimoen.spl override
+	LPF ADD_SPELL_EFFECT INT_VAR opcode=337 target=2 timing=1 parameter1=102 parameter2=233 END
+	LPF ADD_SPELL_EFFECT INT_VAR opcode=233 target=2 timing=1 parameter1=2 parameter2=103 END
+	
+COPY_EXISTING_REGEXP ~imoen21[13].cre~ override
+	WRITE_BYTE 0x67 20
+	WRITE_BYTE 0x69 20
+	WRITE_ASCII SCRIPT_OVERRIDE c4kimoen

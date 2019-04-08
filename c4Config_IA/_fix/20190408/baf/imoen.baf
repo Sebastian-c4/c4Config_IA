@@ -1,0 +1,15 @@
+
+//∞Æ√…¡‘ ÷£¨4–« Æ◊÷π≠£¨
+IF
+	InParty(Myself)
+	!Kit(Myself,c4Q06Thief)
+	AreaCheck("ar1512")
+	Difficulty(EASIEST)
+THEN
+	RESPONSE #100
+		ReallyForceSpellRES("c4kimoen",Myself)
+		Wait(1)
+		ChangeClass(Myself,THIEF)
+		Wait(1)
+		AddKit(c4Q06Thief)
+END

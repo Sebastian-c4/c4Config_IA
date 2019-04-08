@@ -4,22 +4,27 @@ DEFINE_ACTION_FUNCTION 20190213 BEGIN
 
 	//审判日和真理剑
 	ACTION_DEFINE_ASSOCIATIVE_ARRAY alignment_319 BEGIN
-		1		=>	0b00001010
-		2		=>	0b00000110
-		3		=>	0b00001100
-		16	=>	0b00100001
-		32	=>	0b00010001
-		48	=>	0b00110000
-		17	=>	0b00101011
-		18	=>	0b00100111
-		19	=>	0b00101101
-		33	=>	0b00011011
-		34	=>	0b00010111
-		35	=>	0b00011101
-		49	=>	0b00111010
-		50	=>	0b00110110
-		51	=>	0b00111100
+		0x01	=>	0b00001010	//MASK_GOOD
+		0x02	=>	0b00000110	//MASK_GENEUTRAL
+		0x03	=>	0b00001100	//MASK_EVIL
+		0x10	=>	0b00100001	//MASK_LAWFUL
+		0x20	=>	0b00010001	//MASK_LCNEUTRAL
+		0x30	=>	0b00110000	//MASK_CHAOTIC
+		/*
+		0x11	=>	0b00101011	//LAWFUL_GOOD
+		0x12	=>	0b00100111	//LAWFUL_NEUTRAL
+		0x13	=>	0b00101101	//LAWFUL_EVIL
+		0x21	=>	0b00011011	//NEUTRAL_GOOD
+		0x22	=>	0b00010111	//NEUTRAL
+		0x23	=>	0b00011101	//NEUTRAL_EVIL
+		0x31	=>	0b00111010	//CHAOTIC_GOOD
+		0x32	=>	0b00110110	//CHAOTIC_NEUTRAL
+		0x33	=>	0b00111100	//CHAOTIC_EVIL
+		*/
 	END
+
+	// set to 1 for do patching otherwise only print the name of the item.
+	OUTER_SET patch=1
 
 	COPY_EXISTING_REGEXP GLOB ~.*\.itm~ override
 		GET_OFFSET_ARRAY effect ITM_V10_GEN_EFFECTS
@@ -30,12 +35,18 @@ DEFINE_ACTION_FUNCTION 20190213 BEGIN
 				READ_LONG offset+4 param1
 				PHP_EACH alignment_319 AS int => flag BEGIN
 					PATCH_IF param1=int BEGIN
-						WRITE_BYTE 0x1e (THIS BOR ~%flag%~)
+						PATCH_IF patch=1 BEGIN
+							WRITE_BYTE 0x1e (THIS BOR ~%flag%~)
+						END ELSE PATCH_PRINT ~%SOURCE_RES%~
 					END
 				END
 			END
 		END
-		LPF ALTER_EFFECT INT_VAR silent=1 check_headers=0 match_opcode=319 match_parameter2=8 power=0 END
+		PATCH_IF patch=1 BEGIN
+			PHP_EACH alignment_319 AS int => flag BEGIN
+				LPF ALTER_EFFECT INT_VAR silent=1 check_headers=0 match_opcode=319 match_parameter1=int match_parameter2=8 power=0 END
+			END
+		END
 		BUT_ONLY
 
 	//混元噬心

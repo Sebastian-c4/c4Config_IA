@@ -1,8 +1,8 @@
 
 DEFINE_ACTION_FUNCTION buff BEGIN
 
-	INCLUDE ~%LIBS%/ds/ds.tph~
-	LAF detectable_spells END
+	// INCLUDE ~%LIBS%/ds/ds.tph~
+	// LAF detectable_spells END
 
 	INCLUDE ~%LIBS%/buff_init.tph~
 

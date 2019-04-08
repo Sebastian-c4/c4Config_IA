@@ -1,0 +1,11 @@
+
+//拉萨德设为混元
+IF
+	InParty(Myself)
+	!Kit(Myself,c4Monk)
+	AreaCheck("ar2000")
+	Difficulty(EASIEST)
+THEN
+	RESPONSE #100
+		AddKit(c4Monk)
+END

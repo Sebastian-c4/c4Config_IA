@@ -1,0 +1,13 @@
+
+//ØüÐñÄ¦ÓÎµ´
+IF
+	InParty(Myself)
+	!Kit(Myself,SWASHBUCKLER)
+	AreaCheck("ar0603")
+	Difficulty(EASIEST)
+THEN
+	RESPONSE #100
+		// ReallyForceSpellRES("c4kyoshi",Myself)
+		Wait(1)
+		AddKit(SWASHBUCKLER)
+END
